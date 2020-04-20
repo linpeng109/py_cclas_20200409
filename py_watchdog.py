@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -163,5 +164,6 @@ if __name__ == '__main__':
         multiprocessing.freeze_support()
     config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
     logger = LoggerFactory(config=config).getLogger()
+    print( 'sys.executable is', sys.executable )
     wObserver = WatchDogObServer(config=config, logger=logger)
     wObserver.start()
