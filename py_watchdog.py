@@ -126,6 +126,45 @@ class WatchDogObServer():
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
+    def hcsExcelWorker(self, hcsExcelFileName):
+        dict = {'sheet_name': 0, 'header': None}
+        hcsDf = pd.read_excel(hcsExcelFileName, **dict)
+        # 删除表标题
+        hcsDf.drop(index=[0, 1], inplace=True)
+        # 按照0列排列升序
+        hcsDf.sort_index(0, ascending=False, inplace=True)
+        hcsDf.fillna('', inplace=True)
+        # 删除空列
+        hcsDf.dropna(axis=1, how='any', inplace=True)
+        self.logger.debug(hcsDf)
+        # newfilename = self.__getNewFilename(filename=hcsExcelFileName, type='hcs')
+        # encoding = self.config.get('hcs', 'encoding')
+        # hcsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
+        return hcsDf
+
+    def aasExcelWorker(self, aasExcelFilename):
+        dict = {'sheet_name': 0, 'header': None}
+        aasDf = pd.read_excel(aasExcelFilename, **dict)
+        # 删除表头
+        aasDf.drop(axis=0, index=[0], inplace=True)
+        aasDf.fillna('', inplace=True)
+        self.logger.debug(aasDf)
+        # newfilename = self.__getNewFilename(filename=aasExcelFilename, type='aas')
+        # encoding = self.config.get('aas', 'encoding')
+        # aasDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
+        return aasDf
+
+    def afsExcelWorker(self, afsExcelFileName):
+        dict = {'sheet_name': '样品测量数据', 'header': None}
+        afsDf = pd.read_excel(afsExcelFileName, **dict)
+        afsDf.fillna('', inplace=True)
+        afsDf.drop(index=[0, 1, 2], inplace=True)
+        self.logger.debug(afsDf)
+        # newfilename = self.__getNewFilename(filename=afsExcelFileName, type='afs')
+        # encoding = self.config.get('afs', 'encoding')
+        # afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
+        return afsDf
+
     def start(self):
         path = self.config.get('watchdog', 'path')
         patterns = self.config.get('watchdog', 'patterns').split(';')
@@ -164,6 +203,6 @@ if __name__ == '__main__':
         multiprocessing.freeze_support()
     config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
     logger = LoggerFactory(config=config).getLogger()
-    print( 'sys.executable is', sys.executable )
+    print('sys.executable is', sys.executable)
     wObserver = WatchDogObServer(config=config, logger=logger)
     wObserver.start()

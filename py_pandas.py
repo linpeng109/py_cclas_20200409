@@ -49,7 +49,7 @@ class Parser():
     # 获取比较不同
     def getIncreamentDF(self, srcDF: DataFrame, filename: str, sheet_name: str):
 
-        ('===srcDF===')
+        # self.logger.debug('===srcDF===')
         # self.logger.debug(srcDF.dtypes)
         # self.logger.debug(srcDF)
 
@@ -99,7 +99,7 @@ class Parser():
             # 获取特定格式的日期和时间值
             year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
             month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
-            # 若不存在TIME字段，则以00替代
+            # 若不存在TIME字段，则以''替代
             try:
                 hour = '-' + getattr(row, 'TIME').split(':')[0]
             except AttributeError:
