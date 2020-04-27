@@ -96,14 +96,15 @@ class Parser():
     def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str, startEleNum: int):
         reports = []
         for row in dataframe.itertuples():
-            # 获取特定格式的日期和时间值
+            # 1 获取特定格式的日期和时间值
             year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
             month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
-            # 若不存在TIME字段，则以''替代
+            # 2 获取TIME，若不存在TIME字段，则以''替代
             try:
                 hour = '-' + getattr(row, 'TIME').split(':')[0]
             except AttributeError:
                 hour = ''
+            # 获取simpleid
             sampleid = '-' + str(getattr(row, 'SAMPLEID'))
             # 获取列数
             colsNum = len(dataframe.columns)

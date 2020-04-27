@@ -15,12 +15,14 @@ class LoggerFactory():
         fileHandlerDict['maxBytes'] = int(fileHandlerDict['maxBytes'])
         fileHandlerDict['backupCount'] = int(fileHandlerDict['backupCount'])
         fileHandler = RotatingFileHandler(**fileHandlerDict)
-        formatter = logging.Formatter(fmt="%(asctime)s %(name)s %(levelname)s %(message)s", datefmt="%Y%b%d-%H:%M:%S")
+        formatter = logging.Formatter(fmt="%(asctime)s %(levelname)s %(message)s", datefmt="%Y%b%d-%H:%M:%S")
         fileHandler.setFormatter(formatter)
+        streamHandler = logging.StreamHandler(sys.stdout)
+        streamHandler.setFormatter(formatter)
         logger = logging.getLogger()
         logger.addHandler(fileHandler)
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(self.config.getint('default','logger_level'))
+        logger.addHandler(streamHandler)
+        logger.setLevel(self.config.getint('default', 'logger_level'))
         return logger
 
 

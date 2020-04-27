@@ -4,13 +4,13 @@ import sys
 import time
 from datetime import datetime
 
-import winsound
+import xlrd
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
 
 from py_config import ConfigFactory
 from py_logging import LoggerFactory
-from py_pandas_hby import HBParser
+from py_pandas_hby import HBYParser
 from py_pandas_jdy import JDYParser
 from py_pandas_qty import QTYParser
 from py_pandas_scn import SCNParser
@@ -25,7 +25,7 @@ class WatchDogObServer():
         self.logger = logger
         self.jdyParser = JDYParser(config=config, logger=logger)
         self.scnParser = SCNParser(config=config, logger=logger)
-        self.hbyParser = HBParser(config=config, logger=logger)
+        self.hbyParser = HBYParser(config=config, logger=logger)
         self.qtyParser = QTYParser(config=config, logger=logger)
         self.xjyParser = XJYParser(config=config, logger=logger)
 
@@ -39,26 +39,24 @@ class WatchDogObServer():
 
     # 当创建文件时触发
     def on_created(self, event):
-        # 获取文件名
         filename = event.src_path
-        # 发声
-        if self.config.getboolean('watchdog', 'beep'):
-            winsound.Beep(800, 500)
-        # 解析数据文件
-        if Path.filenameIsContains(filename, ['细菌氧化', '2020', 'xlsx']):
-            xjyProcess = multiprocessing.Process(target=self.xjyWorker, args=(event,))
-            xjyProcess.start()
-        if Path.filenameIsContains(filename, ['生物氧化', '2020', 'xlsx']):
-            qtyProcess = multiprocessing.Process(target=self.qtyWorker, args=(event,))
-            qtyProcess.start()
-            jdyProcess = multiprocessing.Process(target=self.jdyWorker, args=(event,))
-            jdyProcess.start()
-            scnProcess = multiprocessing.Process(target=self.scnWorker, args=(event,))
-            scnProcess.start()
-        if Path.filenameIsContains(filename, ['环保', '2020', 'xlsx']):
-            hbyProcess = multiprocessing.Process(target=self.hbyWorker, args=(event,))
-            hbyProcess.start()
-        self.logger.debug(event)
+        _f = xlrd.open_workbook(filename)
+        sheet_names = _f.sheet_names()
+        sheetName2Worker = {'HBY': 'hbyWorker',
+                            'XJY': 'xjyWorker',
+                            'JDY': 'jdyWorker',
+                            'SCN': 'scnWorker',
+                            'QTY': 'qtyWorker',
+                            'SES2017': 'hcsWorker',
+                            '样品测量数据': 'asfWorker',
+                            'Report': 'aasWorker'}
+        targets = list(sheetName2Worker.keys())
+        workers = []
+        for sheet_name in sheet_names:
+            if sheet_name in targets:
+                workers.append('%s' % (sheetName2Worker.get(sheet_name)))
+        for worker in workers:
+            multiprocessing.Process(target=eval('self.' + worker)(event))
 
     def scnWorker(self, event):
         filename = event.src_path
@@ -126,7 +124,7 @@ class WatchDogObServer():
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def hcsExcelWorker(self, hcsExcelFileName):
+    def hcsWorker(self, hcsExcelFileName):
         dict = {'sheet_name': 0, 'header': None}
         hcsDf = pd.read_excel(hcsExcelFileName, **dict)
         # 删除表标题
@@ -142,7 +140,7 @@ class WatchDogObServer():
         # hcsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
         return hcsDf
 
-    def aasExcelWorker(self, aasExcelFilename):
+    def aaslWorker(self, aasExcelFilename):
         dict = {'sheet_name': 0, 'header': None}
         aasDf = pd.read_excel(aasExcelFilename, **dict)
         # 删除表头
@@ -154,7 +152,7 @@ class WatchDogObServer():
         # aasDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
         return aasDf
 
-    def afsExcelWorker(self, afsExcelFileName):
+    def afsWorker(self, afsExcelFileName):
         dict = {'sheet_name': '样品测量数据', 'header': None}
         afsDf = pd.read_excel(afsExcelFileName, **dict)
         afsDf.fillna('', inplace=True)
@@ -188,7 +186,7 @@ class WatchDogObServer():
         self.logger.info('patterns=%s' % patterns)
         self.logger.info('path=%s' % path)
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
-        self.logger.info('beep=%s' % str(self.config.getboolean('watchdog', 'beep')))
+        # self.logger.info('beep=%s' % str(self.config.getboolean('watchdog', 'beep')))
         try:
             while observer.is_alive():
                 time.sleep(self.config.getfloat('watchdog', 'delay'))
@@ -196,13 +194,3 @@ class WatchDogObServer():
             observer.stop()
             self.logger.info('WatchDog Observer is stoped.')
         observer.join()
-
-
-if __name__ == '__main__':
-    if os.sys.platform.startswith('win'):
-        multiprocessing.freeze_support()
-    config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
-    logger = LoggerFactory(config=config).getLogger()
-    print('sys.executable is', sys.executable)
-    wObserver = WatchDogObServer(config=config, logger=logger)
-    wObserver.start()

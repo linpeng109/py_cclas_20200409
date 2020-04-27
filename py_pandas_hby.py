@@ -1,15 +1,11 @@
-import uuid
-from datetime import datetime
-
 import pandas as pd
-from pandas import DataFrame
 
 from py_config import ConfigFactory
 from py_logging import LoggerFactory
 from py_pandas import Parser
 
 
-class HBParser(Parser):
+class HBYParser(Parser):
 
     def getHBYDF(self, filename: str, sheet_name: str):
         dict = {'sheet_name': sheet_name, 'header': None, }
@@ -40,7 +36,7 @@ if __name__ == '__main__':
     # 初始化
     config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
     logger = LoggerFactory(config=config).getLogger()
-    hbParser = HBParser(config=config, logger=logger)
+    hbParser = HBYParser(config=config, logger=logger)
 
     filename = 'e:/cclasdir/2020环保表格.xlsx'
     sheet_name = 'HBY'
