@@ -1,16 +1,15 @@
 import multiprocessing
-import os
-import sys
 import time
+import winsound
 from datetime import datetime
 
 import xlrd
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
 
-from py_config import ConfigFactory
-from py_logging import LoggerFactory
+from py_pandas_afs import AFSParser
 from py_pandas_hby import HBYParser
+from py_pandas_hcs import HCSParser
 from py_pandas_jdy import JDYParser
 from py_pandas_qty import QTYParser
 from py_pandas_scn import SCNParser
@@ -28,10 +27,10 @@ class WatchDogObServer():
         self.hbyParser = HBYParser(config=config, logger=logger)
         self.qtyParser = QTYParser(config=config, logger=logger)
         self.xjyParser = XJYParser(config=config, logger=logger)
+        self.afsParser = AFSParser(config=config, logger=logger)
+        self.hcsParser = HCSParser(config=config, logger=logger)
 
     def on_modified(self, event):
-        # print(event)
-        # result = self.parser.startProcess1(event)
         self.logger.debug(event)
 
     def on_any_event(self, event):
@@ -39,6 +38,7 @@ class WatchDogObServer():
 
     # 当创建文件时触发
     def on_created(self, event):
+
         filename = event.src_path
         _f = xlrd.open_workbook(filename)
         sheet_names = _f.sheet_names()
@@ -55,6 +55,9 @@ class WatchDogObServer():
         for sheet_name in sheet_names:
             if sheet_name in targets:
                 workers.append('%s' % (sheetName2Worker.get(sheet_name)))
+
+        winsound.Beep(500,800)
+
         for worker in workers:
             multiprocessing.Process(target=eval('self.' + worker)(event))
 
@@ -124,6 +127,16 @@ class WatchDogObServer():
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
+    def afsWorker(self, event):
+        filename = event.src_path
+        sheet_name = '样品测量数据'
+        # 从文件名中获取method
+        method = Path.splitFullPathFileName(filename)['main'][11:]
+        asfDF = self.asfParser.getAFSDF(filename=filename, sheet_name=sheet_name)
+        reports = self.asfParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+        self.asfParser.outputReport(reports=reports)
+        self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
+
     def hcsWorker(self, hcsExcelFileName):
         dict = {'sheet_name': 0, 'header': None}
         hcsDf = pd.read_excel(hcsExcelFileName, **dict)
@@ -151,17 +164,6 @@ class WatchDogObServer():
         # encoding = self.config.get('aas', 'encoding')
         # aasDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
         return aasDf
-
-    def afsWorker(self, afsExcelFileName):
-        dict = {'sheet_name': '样品测量数据', 'header': None}
-        afsDf = pd.read_excel(afsExcelFileName, **dict)
-        afsDf.fillna('', inplace=True)
-        afsDf.drop(index=[0, 1, 2], inplace=True)
-        self.logger.debug(afsDf)
-        # newfilename = self.__getNewFilename(filename=afsExcelFileName, type='afs')
-        # encoding = self.config.get('afs', 'encoding')
-        # afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
-        return afsDf
 
     def start(self):
         path = self.config.get('watchdog', 'path')

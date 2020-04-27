@@ -12,7 +12,6 @@ class AFSParser(Parser):
         # 获取参数
         date = Path.splitFullPathFileName(filename)['main'][0:8]
         element = Path.splitFullPathFileName(filename)['main'][8:10].upper()
-        method = Path.splitFullPathFileName(filename)['main'][11:]
         # 读取数据
         dict = {'sheet_name': sheet_name, 'header': None, }
         afsDF = pd.read_excel(io=filename, **dict)

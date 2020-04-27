@@ -20,10 +20,13 @@ class SCNParser(Parser):
         scnDF['DATE'].fillna(method='ffill', inplace=True)
         scnDF['TIME'].fillna(method='ffill', inplace=True)
         # 处理日期和时间列
-        # scnDF['DATE'] = pd.to_datetime(scnDF['DATE'], format='%Y/%m/%d')
-        scnDF['DATE'] = scnDF['DATE'].dt.strftime('%Y-%m-%d')
-        # scnDF['TIME'] = pd.to_datetime(scnDF['TIME'], format='%Y-%m-%d %H:%M:%S')
-        scnDF['TIME'] = scnDF['TIME'].dt.strftime('%H:%M')
+        try:
+            # scnDF['DATE'] = pd.to_datetime(scnDF['DATE'], format='%Y/%m/%d')
+            scnDF['DATE'] = scnDF['DATE'].dt.strftime('%Y-%m-%d')
+            # scnDF['TIME'] = pd.to_datetime(scnDF['TIME'], format='%Y-%m-%d %H:%M:%S')
+            scnDF['TIME'] = scnDF['TIME'].dt.strftime('%H:%M')
+        except ValueError as error:
+            logger.error(error)
         # 删除空行
         scnDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
