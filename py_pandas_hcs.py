@@ -18,13 +18,14 @@ class HCSParser(Parser):
                    8: 'sp', 9: 'cp', 10: 'c_a', 11: 's_b', 12: 'DATE', 13: 'al', 14: 'status', 15: 'c_avg', 16: 's_avg',
                    17: 'c_b', 18: 's_b', 19: 'c_rsd', 20: 's_rsd'}
         hcsDf.rename(columns=columns, inplace=True)
-
-        hcsDf['DATE'] = pd.to_datetime(hcsDf['DATE'], format='%Y/%m/%d', errors='ignore')
-
-        hcsDf.to_csv('a.csv', encoding='gbk')
-        # hcsDf.fillna('', inplace=True)
+        try:
+            hcsDf['DATE'] = pd.to_datetime(hcsDf['DATE'], format='%Y/%m/%d', errors='ignore')
+        except ValueError as error:
+            self.logger.error(error)
+        # hcsDf.to_csv('a.csv', encoding='gbk')
+        hcsDf.fillna('', inplace=True)
         # 删除空列
-        # hcsDf.dropna(axis=1, how='any', inplace=True)
+        hcsDf.dropna(axis=1, how='any', inplace=True)
         # self.logger.debug(hcsDf)
         # newfilename = self.__getNewFilename(filename=hcsExcelFileName, type='hcs')
         # encoding = self.config.get('hcs', 'encoding')

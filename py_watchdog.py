@@ -1,8 +1,8 @@
 import multiprocessing
 import time
-import winsound
 from datetime import datetime
 
+import pandas as pd
 import xlrd
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
@@ -48,15 +48,13 @@ class WatchDogObServer():
                             'SCN': 'scnWorker',
                             'QTY': 'qtyWorker',
                             'SES2017': 'hcsWorker',
-                            '样品测量数据': 'asfWorker',
+                            '样品测量数据': 'afsWorker',
                             'Report': 'aasWorker'}
         targets = list(sheetName2Worker.keys())
         workers = []
         for sheet_name in sheet_names:
             if sheet_name in targets:
                 workers.append('%s' % (sheetName2Worker.get(sheet_name)))
-
-        winsound.Beep(500,800)
 
         for worker in workers:
             multiprocessing.Process(target=eval('self.' + worker)(event))
@@ -132,9 +130,9 @@ class WatchDogObServer():
         sheet_name = '样品测量数据'
         # 从文件名中获取method
         method = Path.splitFullPathFileName(filename)['main'][11:]
-        asfDF = self.asfParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-        reports = self.asfParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
-        self.asfParser.outputReport(reports=reports)
+        asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
+        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+        self.afsParser.outputReport(reports=reports)
         self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
     def hcsWorker(self, hcsExcelFileName):
@@ -179,10 +177,10 @@ class WatchDogObServer():
                                                     case_sensitive=case_sensitive)
         event_handler.on_created = self.on_created
 
-        observer = Observer()
-        observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
+        self.observer = Observer()
+        self.observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
 
-        observer.start()
+        self.observer.start()
 
         self.logger.info('WatchDog Observer for CCLAS is startting.....')
         self.logger.info('patterns=%s' % patterns)
@@ -190,9 +188,12 @@ class WatchDogObServer():
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
         # self.logger.info('beep=%s' % str(self.config.getboolean('watchdog', 'beep')))
         try:
-            while observer.is_alive():
+            while self.observer.is_alive():
                 time.sleep(self.config.getfloat('watchdog', 'delay'))
         except KeyboardInterrupt:
-            observer.stop()
+            self.observer.stop()
             self.logger.info('WatchDog Observer is stoped.')
-        observer.join()
+        self.observer.join()
+
+    def stop(self):
+        self.observer.start()

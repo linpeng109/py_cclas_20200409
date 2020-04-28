@@ -96,26 +96,37 @@ class Parser():
     def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str, startEleNum: int):
         reports = []
         for row in dataframe.itertuples():
+
+            report = ''
+
             # 1 获取特定格式的日期和时间值
-            year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
-            month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
+            try:
+                year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
+                month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
+            except ValueError as error:
+                self.logger.error(error)
+
             # 2 获取TIME，若不存在TIME字段，则以''替代
             try:
                 hour = '-' + getattr(row, 'TIME').split(':')[0]
             except AttributeError:
                 hour = ''
-            # 获取simpleid
+
+            # 3 获取simpleid
             sampleid = '-' + str(getattr(row, 'SAMPLEID'))
+
+            # 4 获取元素数据
             # 获取列数
             colsNum = len(dataframe.columns)
             # 非空列数
             not_null_cols_num = 0
-            report = ''
+
             for j in range(startEleNum, colsNum):
                 # 只添加非空值的数据项
                 if (str(row[j + 1]).replace(' ', '') != ''):
                     report = report + ('%-10s%-10.8s' % (dataframe.columns[j], row[j + 1]))
                     not_null_cols_num = not_null_cols_num + 1
+
             # 如果存在化验元素则生成报告
             if not_null_cols_num > 0:
                 # 输出格式化

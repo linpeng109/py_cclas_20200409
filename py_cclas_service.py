@@ -1,9 +1,9 @@
 import multiprocessing
 import os
-
-import servicemanager
 import socket
 import sys
+
+import servicemanager
 import win32event
 import win32service
 import win32serviceutil
@@ -13,10 +13,11 @@ from py_logging import LoggerFactory
 from py_watchdog import WatchDogObServer
 
 
-class TestService(win32serviceutil.ServiceFramework):
+# Watchdog for CCLAS Windows Service 版本
+class WatchDogService(win32serviceutil.ServiceFramework):
     _svc_name_ = "WatchDogService"
     _svc_display_name_ = "WatchDog Service"
-    _svc_description_ = "WatchDog for CCLAS "
+    _svc_description_ = "WatchDog for CCLAS Sinomine.com.cn"
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
@@ -24,6 +25,7 @@ class TestService(win32serviceutil.ServiceFramework):
         socket.setdefaulttimeout(60)
 
     def SvcStop(self):
+        self.wObserver.stop()
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.hWaitStop)
 
@@ -31,13 +33,14 @@ class TestService(win32serviceutil.ServiceFramework):
         if os.sys.platform.startswith('win'):
             multiprocessing.freeze_support()
 
-        config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
+        config = ConfigFactory(config_file_name='d:\\py_cclas.ini').getConfig()
         logger = LoggerFactory(config=config).getLogger()
-        wObserver = WatchDogObServer(config=config, logger=logger)
-        wObserver.start()
+        self.wObserver = WatchDogObServer(config=config, logger=logger)
+        self.wObserver.start()
+
         rc = None
         while rc != win32event.WAIT_OBJECT_0:
-            with open('C:\\TestService.log', 'a') as f:
+            with open('e:\\TestService.log', 'a') as f:
                 f.write('test service running...\n')
             rc = win32event.WaitForSingleObject(self.hWaitStop, 5000)
 
@@ -45,7 +48,7 @@ class TestService(win32serviceutil.ServiceFramework):
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         servicemanager.Initialize()
-        servicemanager.PrepareToHostSingle(TestService)
+        servicemanager.PrepareToHostSingle(WatchDogService)
         servicemanager.StartServiceCtrlDispatcher()
     else:
-        win32serviceutil.HandleCommandLine(TestService)
+        win32serviceutil.HandleCommandLine(WatchDogService)
