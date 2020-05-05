@@ -49,9 +49,9 @@ class Parser():
     # 获取比较不同
     def getIncreamentDF(self, srcDF: DataFrame, filename: str, sheet_name: str):
 
-        ('===srcDF===')
-        # self.logger.debug(srcDF.dtypes)
-        # self.logger.debug(srcDF)
+        self.logger.debug('===srcDF===')
+        self.logger.debug(srcDF.dtypes)
+        self.logger.debug(srcDF)
 
         newFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='new')
         self.toSeries(dataFrame=srcDF, filename=newFile)
