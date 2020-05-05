@@ -1,7 +1,4 @@
-from datetime import datetime
-
 import pandas as pd
-from pandas import DataFrame
 
 from py_config import ConfigFactory
 from py_logging import LoggerFactory
@@ -26,10 +23,13 @@ class XJYParser(Parser):
         xjyDF['DATE'].fillna(method='ffill', inplace=True)
         xjyDF['TIME'].fillna(method='ffill', inplace=True)
         # 处理日期和时间列
-        xjyDF['DATE'] = pd.to_datetime(xjyDF['DATE'], format='%m/%d/%Y')
-        xjyDF['DATE'] = xjyDF['DATE'].dt.strftime('%Y-%m-%d')
-        xjyDF['TIME'] = pd.to_datetime(xjyDF['TIME'], format='%H:%M:%S')
-        xjyDF['TIME'] = xjyDF['TIME'].dt.strftime('%H:%M:%S')
+        try:
+            xjyDF['DATE'] = pd.to_datetime(xjyDF['DATE'], format='%m/%d/%Y')
+            xjyDF['DATE'] = xjyDF['DATE'].dt.strftime('%Y-%m-%d')
+            xjyDF['TIME'] = pd.to_datetime(xjyDF['TIME'], format='%H:%M:%S')
+            xjyDF['TIME'] = xjyDF['TIME'].dt.strftime('%H:%M:%S')
+        except ValueError as error:
+            logger.error(error)
         # 删除空行
         xjyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
@@ -47,7 +47,6 @@ if __name__ == '__main__':
     filename = 'e:/cclasdir/2020细菌氧化V2.xlsx'
     sheet_name = '01'
     method = 'SY001'
-
 
     xjyDF = xjyParser.getXJYDF(filename=filename, sheet_name=sheet_name)
     increamentDF = xjyParser.getIncreamentDF(srcDF=xjyDF, filename=filename, sheet_name=sheet_name)

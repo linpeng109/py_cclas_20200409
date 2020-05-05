@@ -22,8 +22,11 @@ class JDYParser(Parser):
         # 删除表头
         jdyDF.drop(axis=0, index=[0, 1], inplace=True)
         # 处理日期和时间列
-        jdyDF['DATE'] = jdyDF['DATE'].dt.strftime('%Y-%m-%d')
-        jdyDF['TIME'] = jdyDF['TIME'].dt.strftime('%H:%M')
+        try:
+            jdyDF['DATE'] = jdyDF['DATE'].dt.strftime('%Y-%m-%d')
+            jdyDF['TIME'] = jdyDF['TIME'].dt.strftime('%H:%M')
+        except ValueError as error:
+            logger.error(error)
         # 删除空行
         jdyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
