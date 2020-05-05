@@ -16,6 +16,8 @@ from py_pandas_scn import SCNParser
 from py_pandas_xjy import XJYParser
 from py_path import Path
 
+from py_config import ConfigFactory as configFacoty
+
 
 class WatchDogObServer():
 
@@ -30,6 +32,13 @@ class WatchDogObServer():
         self.afsParser = AFSParser(config=config, logger=logger)
         self.hcsParser = HCSParser(config=config, logger=logger)
 
+    def __getNewFilename(self, filename, type='default'):
+        newpath = self.config.get(type, 'outpath')
+        Path.outpathIsExist(newpath)
+        fileinfo = Path.splitFullPathFileName(filename)
+        newfilename = (newpath + fileinfo.get('sep') + fileinfo.get('main') + '_OK' + '.csv')
+        return newfilename
+
     def on_modified(self, event):
         self.logger.debug(event)
 
@@ -42,14 +51,15 @@ class WatchDogObServer():
         filename = event.src_path
         _f = xlrd.open_workbook(filename)
         sheet_names = _f.sheet_names()
-        sheetName2Worker = {'HBY': 'hbyWorker',
-                            'XJY': 'xjyWorker',
-                            'JDY': 'jdyWorker',
-                            'SCN': 'scnWorker',
-                            'QTY': 'qtyWorker',
-                            'SES2017': 'hcsWorker',
-                            '样品测量数据': 'afsWorker',
-                            'Report': 'aasWorker'}
+        # sheetName2Worker = {'HBY': 'hbyWorker',
+        #                     'XJY': 'xjyWorker',
+        #                     'JDY': 'jdyWorker',
+        #                     'SCN': 'scnWorker',
+        #                     'QTY': 'qtyWorker',
+        #                     'SES2017': 'hcs2csvWorker',
+        #                     '样品测量数据': 'afs2csvWorker',
+        #                     'Report': 'aas2csvWorker'}
+        sheetName2Worker = dict(self.config.items('sheetname'))
         targets = list(sheetName2Worker.keys())
         workers = []
         for sheet_name in sheet_names:
@@ -57,6 +67,7 @@ class WatchDogObServer():
                 workers.append('%s' % (sheetName2Worker.get(sheet_name)))
 
         for worker in workers:
+            self.logger.debug('Starting  %s ......' % worker)
             multiprocessing.Process(target=eval('self.' + worker)(event))
 
     def scnWorker(self, event):
@@ -135,9 +146,31 @@ class WatchDogObServer():
         self.afsParser.outputReport(reports=reports)
         self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def hcsWorker(self, hcsExcelFileName):
+    def afs2csvWorker(self, event):
+        filename = event.src_path
+        dict = {'sheet_name': '样品测量数据', 'header': None}
+        afsDf = pd.read_excel(filename, **dict)
+        afsDf.fillna('', inplace=True)
+        afsDf.drop(index=[0, 1, 2], inplace=True)
+        self.logger.debug(afsDf)
+        newfilename = self.__getNewFilename(filename=filename, type='afs')
+        encoding = self.config.get('afs', 'encoding')
+        afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
+
+    def afs2reportWorker(self, event):
+        filename = event.src_path
+        sheet_name = '样品测量数据'
+        # 从文件名中获取method
+        method = Path.splitFullPathFileName(filename)['main'][11:]
+        asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
+        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+        self.afsParser.outputReport(reports=reports)
+        self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
+
+    def hcs2csvWorker(self, event):
+        filename = event.src_path
         dict = {'sheet_name': 0, 'header': None}
-        hcsDf = pd.read_excel(hcsExcelFileName, **dict)
+        hcsDf = pd.read_excel(filename, **dict)
         # 删除表标题
         hcsDf.drop(index=[0, 1], inplace=True)
         # 按照0列排列升序
@@ -146,22 +179,20 @@ class WatchDogObServer():
         # 删除空列
         hcsDf.dropna(axis=1, how='any', inplace=True)
         self.logger.debug(hcsDf)
-        # newfilename = self.__getNewFilename(filename=hcsExcelFileName, type='hcs')
-        # encoding = self.config.get('hcs', 'encoding')
-        # hcsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
-        return hcsDf
+        newfilename = self.__getNewFilename(filename=filename, type='hcs')
+        encoding = self.config.get('hcs', 'encoding')
+        hcsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
 
-    def aaslWorker(self, aasExcelFilename):
+    def aas2csvWorker(self, event):
+        filename = event.src_path
         dict = {'sheet_name': 0, 'header': None}
-        aasDf = pd.read_excel(aasExcelFilename, **dict)
-        # 删除表头
-        aasDf.drop(axis=0, index=[0], inplace=True)
-        aasDf.fillna('', inplace=True)
-        self.logger.debug(aasDf)
-        # newfilename = self.__getNewFilename(filename=aasExcelFilename, type='aas')
-        # encoding = self.config.get('aas', 'encoding')
-        # aasDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
-        return aasDf
+        afsDf = pd.read_excel(filename, **dict)
+        afsDf.fillna('', inplace=True)
+        afsDf.drop(index=[0, 1, 2], inplace=True)
+        self.logger.debug(afsDf)
+        newfilename = self.__getNewFilename(filename=filename, type='aas')
+        encoding = self.config.get('aas', 'encoding')
+        afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
 
     def start(self):
         path = self.config.get('watchdog', 'path')
@@ -186,7 +217,6 @@ class WatchDogObServer():
         self.logger.info('patterns=%s' % patterns)
         self.logger.info('path=%s' % path)
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
-        # self.logger.info('beep=%s' % str(self.config.getboolean('watchdog', 'beep')))
         try:
             while self.observer.is_alive():
                 time.sleep(self.config.getfloat('watchdog', 'delay'))

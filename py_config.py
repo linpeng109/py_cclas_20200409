@@ -14,11 +14,11 @@ class ConfigFactory():
         config_parser = self._Configparser()
         # 配置文件中使用变量调用
         config_parser._interpolation = configparser.ExtendedInterpolation()
-        config_parser.read(filenames=self.configFile, encoding='utf8')
+        config_parser.read(filenames=self.configFile, encoding='gbk')
         return config_parser
 
 
 if __name__ == '__main__':
     cfg = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
-    dic = dict(cfg.items('logger'))
+    dic = dict(cfg.items('sheetname'))
     print(dic)
