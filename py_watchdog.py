@@ -51,14 +51,6 @@ class WatchDogObServer():
         filename = event.src_path
         _f = xlrd.open_workbook(filename)
         sheet_names = _f.sheet_names()
-        # sheetName2Worker = {'HBY': 'hbyWorker',
-        #                     'XJY': 'xjyWorker',
-        #                     'JDY': 'jdyWorker',
-        #                     'SCN': 'scnWorker',
-        #                     'QTY': 'qtyWorker',
-        #                     'SES2017': 'hcs2csvWorker',
-        #                     '样品测量数据': 'afs2csvWorker',
-        #                     'Report': 'aas2csvWorker'}
         sheetName2Worker = dict(self.config.items('sheetname'))
         targets = list(sheetName2Worker.keys())
         workers = []

@@ -11,7 +11,7 @@ import win32serviceutil
 from py_config import ConfigFactory
 from py_logging import LoggerFactory
 from py_watchdog import WatchDogObServer
-
+import win32timezone
 
 # Watchdog for CCLAS Windows Service 版本
 class WatchDogService(win32serviceutil.ServiceFramework):
@@ -33,7 +33,7 @@ class WatchDogService(win32serviceutil.ServiceFramework):
         if os.sys.platform.startswith('win'):
             multiprocessing.freeze_support()
 
-        config = ConfigFactory(config_file_name='d:\\py_cclas.ini').getConfig()
+        config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
         logger = LoggerFactory(config=config).getLogger()
         self.wObserver = WatchDogObServer(config=config, logger=logger)
         self.wObserver.start()

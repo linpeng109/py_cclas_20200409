@@ -1,5 +1,6 @@
 import os
 import os.path
+import sys
 
 
 class Path():
@@ -30,11 +31,33 @@ class Path():
             os.makedirs(outputPath)
             print('The Path is not exist. Created (%s).' % outputPath)
 
+    @classmethod
+    def resource_path(self, relative_path: str):
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
+    def get_path_info(self):
+
+        frozen = 'not'
+        if getattr(sys, 'frozen', False):
+            # we are running in a bundle
+            frozen = 'ever so'
+            bundle_dir = sys._MEIPASS
+        else:
+            # we are running in a normal Python environment
+            bundle_dir = os.path.dirname(os.path.abspath(__file__))
+        # print('we are', frozen, 'frozen')
+        # print('bundle dir is', bundle_dir)
+        # print('sys.argv[0] is', sys.argv[0])
+        # print('sys.executable is', sys.executable)
+        # print('os.getcwd is', os.getcwd())
+        return {'frozen': frozen, 'bundle_dir': bundle_dir, 'argv0': sys.argv[0], 'executable': sys.executable,
+                'cwd': os.getcwd()}
+
 
 if __name__ == '__main__':
-    # fullname = '/home/pi/Shared/AFS-8510.xlsx'
-    # result1 = splitFullPathFileName(fullname)
-    # print(result1)
-    # result = filenameIsContains(fullname, ['AFS', 'xlsx'])
-    # print(result)
-    Path.outpathIsExist('e:/watchdogdir/aass')
+    path = Path()
+    print(path.get_path_info())
