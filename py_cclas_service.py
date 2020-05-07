@@ -40,8 +40,8 @@ class WatchDogService(win32serviceutil.ServiceFramework):
 
         rc = None
         while rc != win32event.WAIT_OBJECT_0:
-            with open('e:\\TestService.log', 'a') as f:
-                f.write('test service running...\n')
+            # with open('e:\\TestService.log', 'a') as f:
+            #     f.write('test service running...\n')
             rc = win32event.WaitForSingleObject(self.hWaitStop, 5000)
 
 

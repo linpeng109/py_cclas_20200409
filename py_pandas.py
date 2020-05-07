@@ -104,6 +104,8 @@ class Parser():
                 year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
                 month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
             except ValueError as error:
+                year_month = 'yymm'
+                month_day = 'mmdd'
                 self.logger.error(error)
 
             # 2 获取TIME，若不存在TIME字段，则以''替代
@@ -121,11 +123,18 @@ class Parser():
             # 非空列数
             not_null_cols_num = 0
 
-            for j in range(startEleNum, colsNum):
-                # 只添加非空值的数据项
-                if (str(row[j + 1]).replace(' ', '') != ''):
-                    report = report + ('%-10s%-10.8s' % (dataframe.columns[j], row[j + 1]))
-                    not_null_cols_num = not_null_cols_num + 1
+            element_report = ''
+            for element_name in dataframe.columns:
+                if element_name in ['DATE', 'TIME', 'SAMPLEID', 'SAMPLE']:
+                    pass
+                else:
+                    element_value = str(getattr(row, element_name))
+                    element_value.replace(' ', '')
+                    # 只添加非空值的数据项
+                    if element_value != '':
+                        element_report = element_report + ('%-10s%-10.8s' % (element_name, element_value))
+                        not_null_cols_num = not_null_cols_num + 1
+            # print('=====%s=====' % element_report)
 
             # 如果存在化验元素则生成报告
             if not_null_cols_num > 0:
@@ -135,7 +144,7 @@ class Parser():
                            method,
                            month_day + hour + sampleid,
                            not_null_cols_num,
-                           report))
+                           element_report))
                 reports.append(report)
         return reports
 
