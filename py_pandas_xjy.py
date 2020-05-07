@@ -14,10 +14,6 @@ class XJYParser(Parser):
         print(xjyDF)
         # 检查列名是否重复或者空值
         xjyDF=self.get_valid_dataframe(xjyDF)
-        # elementList = xjyDF.iloc[0:1].values.tolist()[0]
-        # xjyDF.columns = elementList
-        # print('Element list is %s' % elementList)
-        # self.checkColumnsIsContainsDuplicateOrNan(dataFrame=xjyDF)
         # 删除表头
         xjyDF.drop(axis=0, index=[0, 1], inplace=True)
         # 填充缺失项
@@ -26,9 +22,7 @@ class XJYParser(Parser):
         # 处理日期和时间列
         try:
             xjyDF['DATE'] = pd.to_datetime(xjyDF['DATE'], format='%m/%d/%Y')
-            xjyDF['DATE'] = xjyDF['DATE'].dt.strftime('%Y-%m-%d')
             xjyDF['TIME'] = pd.to_datetime(xjyDF['TIME'], format='%H:%M:%S')
-            xjyDF['TIME'] = xjyDF['TIME'].dt.strftime('%H:%M:%S')
         except ValueError as error:
             logger.error(error)
         # 删除空行
@@ -45,12 +39,12 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     xjyParser = XJYParser(logger=logger, config=config)
 
-    filename = 'e:/cclasdir/2020细菌氧化V2.xlsx'
+    filename = 'e:/cclasdir/2020细菌氧化.xlsx'
     sheet_name = '01'
     method = 'SY001'
 
     xjyDF = xjyParser.getXJYDF(filename=filename, sheet_name=sheet_name)
     increamentDF = xjyParser.getIncreamentDF(srcDF=xjyDF, filename=filename, sheet_name=sheet_name)
-    reports = xjyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
+    reports = xjyParser.buildReport(dataframe=increamentDF, sheet_name='XJY', method=method)
     xjyParser.outputReport(reports=reports)
-    xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
+    xjyParser.reportFileHandle(filename=filename, sheet_name='XJY')

@@ -171,12 +171,15 @@ class Parser():
             outpath = self.config.get('cclas', 'outputdir')
             if os.path.isdir(outpath) != True:
                 os.mkdir(outpath)
-            filename = '%s/%s_%s_%05d.txt' % (
+            main_file_name_part_1 = Path.get_validate_filename(reports[i][0:20].replace(' ', ''))
+            main_file_name_part_2 = Path.get_validate_filename(filename=reports[i][30:50].replace(' ', ''))
+            full_path_filename = '%s/%s_%s_%05d.txt' % (
                 outpath,
-                reports[i][0:20].replace(' ', ''),
-                reports[i][30:50].replace(' ', ''),
+                main_file_name_part_1,
+                main_file_name_part_2,
                 i + 1)
-            with open(filename, 'w+') as file:
+
+            with open(full_path_filename, 'w+') as file:
                 file.write(reports[i])
                 file.close()
             self.logger.debug(reports[i])

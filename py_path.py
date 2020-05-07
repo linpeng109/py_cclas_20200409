@@ -1,5 +1,6 @@
 import os
 import os.path
+import re
 import sys
 
 
@@ -39,6 +40,15 @@ class Path():
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
 
+    @classmethod
+    def get_validate_filename(self, filename: str):
+        # 检查文件名中是否含有以下非法字符：'/ \ : * ? " < > |'
+        rstr = r"[\/\\\:\*\?\"\<\>\|]"
+        # 非法字符全部替换为下划线
+        new_file_name = re.sub(rstr, "_", filename)
+        return new_file_name
+
+    @classmethod
     def get_path_info(self):
 
         frozen = 'not'

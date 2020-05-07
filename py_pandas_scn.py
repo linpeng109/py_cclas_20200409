@@ -13,9 +13,6 @@ class SCNParser(Parser):
         scnDF = pd.read_excel(io=filename, **dict)
         # 检查列名是否重复或者空值
         scnDF = self.get_valid_dataframe(scnDF)
-        # elementList = scnDF.iloc[0:1].values.tolist()[0]
-        # scnDF.columns = elementList
-        # self.checkColumnsIsContainsDuplicateOrNan(dataFrame=scnDF)
         # 删除表头
         scnDF.drop(axis=0, index=[0, 1], inplace=True)
         # 填充缺失项
@@ -23,10 +20,8 @@ class SCNParser(Parser):
         scnDF['TIME'].fillna(method='ffill', inplace=True)
         # 处理日期和时间列
         try:
-            # scnDF['DATE'] = pd.to_datetime(scnDF['DATE'], format='%Y/%m/%d')
-            scnDF['DATE'] = scnDF['DATE'].dt.strftime('%Y-%m-%d')
-            # scnDF['TIME'] = pd.to_datetime(scnDF['TIME'], format='%Y-%m-%d %H:%M:%S')
-            scnDF['TIME'] = scnDF['TIME'].dt.strftime('%H:%M')
+            scnDF['DATE'] = pd.to_datetime(scnDF['DATE'], format='%Y/%m/%d')
+            scnDF['TIME'] = pd.to_datetime(scnDF['TIME'], format='%Y-%m-%d %H:%M:%S')
         except ValueError as error:
             logger.error(error)
         # 删除空行
@@ -43,7 +38,7 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     scnParser = SCNParser(logger=logger, config=config)
 
-    filename = 'e:/cclasdir/2020生物氧化表格2.xlsx'
+    filename = 'e:/cclasdir/2020swyhy.xlsx'
     sheet_name = 'SCN'
     method = 'SY001'
 

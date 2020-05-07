@@ -25,7 +25,7 @@ class HBYParser(Parser):
         # 处理日期和时间列
         try:
             hbyDF['DATE'] = pd.to_datetime(hbyDF['DATE'], format='%Y.%m.%d', errors="raise")
-            hbyDF['DATE'] = hbyDF['DATE'].dt.strftime('%Y-%m-%d')
+            # hbyDF['DATE'] = hbyDF['DATE'].dt.strftime('%Y-%m-%d')
         except ValueError as error:
             self.logger.error(error)
         # 删除空行

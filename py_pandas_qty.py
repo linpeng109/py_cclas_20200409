@@ -16,9 +16,6 @@ class QTYParser(Parser):
         qtyDF = pd.read_excel(io=filename, **dict)
         # 检查列名是否重复或者空值
         qtyDF = self.get_valid_dataframe(qtyDF)
-        # elementList = qtyDF.iloc[0].values.tolist()
-        # self.checkColumnsIsContainsDuplicateOrNan(qtyDF)
-        # qtyDF.columns = elementList
         # 填充缺失项
         qtyDF['DATE'].fillna(method='ffill', inplace=True)
         # 删除表头
@@ -26,9 +23,7 @@ class QTYParser(Parser):
         # 处理日期和时间列
         try:
             qtyDF['DATE'] = pd.to_datetime(qtyDF['DATE'], format='%Y-%m-%d')
-            qtyDF['DATE'] = qtyDF['DATE'].dt.strftime('%Y-%m-%d')
             qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], format='%H:%M:%S')
-            qtyDF['TIME'] = qtyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
             logger.error(error)
         # 删除空行
