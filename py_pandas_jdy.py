@@ -11,11 +11,11 @@ class JDYParser(Parser):
         # 读取数据
         dict = {'sheet_name': sheet_name, 'header': None, }
         jdyDF = pd.read_excel(io=filename, **dict)
-        # 获取列名
-        elementList = jdyDF.iloc[0:1].values.tolist()[0]
-        jdyDF.columns = elementList
+
         # 检查列名是否重复或为空值
-        self.checkColumnsIsContainsDuplicateOrNan(jdyDF)
+        # self.checkColumnsIsContainsDuplicateOrNan(jdyDF)
+        jdyDF = self.get_valid_dataframe(jdyDF)
+
         # 填充空缺值
         jdyDF['DATE'].fillna(method='ffill', inplace=True)
         jdyDF['TIME'].fillna(method='ffill', inplace=True)
@@ -41,12 +41,13 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     jdyParser = JDYParser(config=config, logger=logger)
 
-    filename = 'e:/cclasdir/2020生物氧化表格2.xlsx'
+    filename = 'e:/cclasdir/2020swyhy.xlsx'
     sheet_name = 'JDY'
     method = 'SY001'
 
     jdyDF = jdyParser.getJDYDF(filename=filename, sheet_name=sheet_name)
+    logger.debug(jdyDF)
     increamentDF = jdyParser.getIncreamentDF(srcDF=jdyDF, filename=filename, sheet_name=sheet_name)
-    reports = jdyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method, startEleNum=4)
+    reports = jdyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
     jdyParser.outputReport(reports=reports)
     jdyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)

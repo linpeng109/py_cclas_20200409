@@ -12,9 +12,11 @@ class SCNParser(Parser):
         dict = {'sheet_name': sheet_name, 'header': None, }
         scnDF = pd.read_excel(io=filename, **dict)
         # 检查列名是否重复或者空值
-        elementList = scnDF.iloc[0:1].values.tolist()[0]
-        scnDF.columns = elementList
-        self.checkColumnsIsContainsDuplicateOrNan(dataFrame=scnDF)
+        scnDF = self.get_valid_dataframe(scnDF)
+        # elementList = scnDF.iloc[0:1].values.tolist()[0]
+        # scnDF.columns = elementList
+        # self.checkColumnsIsContainsDuplicateOrNan(dataFrame=scnDF)
+        # 删除表头
         scnDF.drop(axis=0, index=[0, 1], inplace=True)
         # 填充缺失项
         scnDF['DATE'].fillna(method='ffill', inplace=True)
@@ -47,6 +49,6 @@ if __name__ == '__main__':
 
     scnDF = scnParser.getSCNDF(filename=filename, sheet_name=sheet_name)
     increamentDF = scnParser.getIncreamentDF(srcDF=scnDF, filename=filename, sheet_name=sheet_name)
-    reports = scnParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method, startEleNum=4)
+    reports = scnParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
     scnParser.outputReport(reports=reports)
     scnParser.reportFileHandle(filename=filename, sheet_name=sheet_name)

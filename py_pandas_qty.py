@@ -15,9 +15,10 @@ class QTYParser(Parser):
         dict = {'sheet_name': sheet_name, 'header': None, }
         qtyDF = pd.read_excel(io=filename, **dict)
         # 检查列名是否重复或者空值
-        elementList = qtyDF.iloc[0].values.tolist()
-        self.checkColumnsIsContainsDuplicateOrNan(qtyDF)
-        qtyDF.columns = elementList
+        qtyDF = self.get_valid_dataframe(qtyDF)
+        # elementList = qtyDF.iloc[0].values.tolist()
+        # self.checkColumnsIsContainsDuplicateOrNan(qtyDF)
+        # qtyDF.columns = elementList
         # 填充缺失项
         qtyDF['DATE'].fillna(method='ffill', inplace=True)
         # 删除表头
@@ -44,12 +45,12 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     qtyParser = QTYParser(logger=logger, config=config)
 
-    filename = 'e:/cclasdir/2020生物氧化表格2.xlsx'
+    filename = 'e:/cclasdir/2020swyhy.xlsx'
     sheet_name = 'QTY'
     method = 'SY001'
 
     qtyDF = qtyParser.getQTYDF(filename=filename, sheet_name=sheet_name)
     increamentDF = qtyParser.getIncreamentDF(srcDF=qtyDF, filename=filename, sheet_name=sheet_name)
-    reports = qtyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method, startEleNum=4)
+    reports = qtyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
     qtyParser.outputReport(reports=reports)
     qtyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)

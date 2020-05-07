@@ -35,6 +35,22 @@ class Parser():
             df = DataFrame()
         return df
 
+    # 获取有效数据
+    def get_valid_dataframe(self, srcDF: DataFrame):
+        # 获取列名
+        _elements = srcDF.iloc[0:1].values.tolist()[0]
+        # 列重新命名
+        srcDF.columns = _elements
+        # 列名去重复
+        _elements = list(set(_elements))
+        # 列名去除nan值项
+        elements = [x for x in _elements if x == x]
+        self.logger.debug(elements)
+        # 有效数据切割
+        srcDF = srcDF.loc[0:, elements]
+        # 返回有效数据
+        return srcDF
+
     # 检查列名是否重复或包含NAN
     def checkColumnsIsContainsDuplicateOrNan(self, dataFrame: DataFrame):
         columnsList = dataFrame.columns.tolist()
@@ -93,11 +109,9 @@ class Parser():
         return increamentDF
 
     # 生成数据报告列表
-    def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str, startEleNum: int):
+    def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str):
         reports = []
         for row in dataframe.itertuples():
-
-            report = ''
 
             # 1 获取特定格式的日期和时间值
             try:
@@ -118,25 +132,27 @@ class Parser():
             sampleid = '-' + str(getattr(row, 'SAMPLEID'))
 
             # 4 获取元素数据
-            # 获取列数
-            colsNum = len(dataframe.columns)
             # 非空列数
             not_null_cols_num = 0
 
             element_report = ''
             for element_name in dataframe.columns:
-                if element_name in ['DATE', 'TIME', 'SAMPLEID', 'SAMPLE']:
+                # 检测是否是化验数据项
+                if element_name in ['DATE', 'TIME', 'SAMPLEID', 'SAMPLE', 'SAMPLES']:
+                    pass
+                # SAMPLEID项不能是空值或者空格
+                elif str(getattr(row, 'SAMPLEID')).strip() == '':
                     pass
                 else:
+                    # 去除两端空格
                     element_value = str(getattr(row, element_name))
-                    element_value.replace(' ', '')
+                    element_value.strip()
                     # 只添加非空值的数据项
-                    if element_value != '':
+                    if element_value:
                         element_report = element_report + ('%-10s%-10.8s' % (element_name, element_value))
                         not_null_cols_num = not_null_cols_num + 1
-            # print('=====%s=====' % element_report)
 
-            # 如果存在化验元素则生成报告
+            # 如果存在有效（非空的）化验元素则生成报告
             if not_null_cols_num > 0:
                 # 输出格式化
                 report = ('%-20s%-10s%-20s%02d%s' %

@@ -52,5 +52,5 @@ if __name__ == '__main__':
     method = 'AFS02'
 
     asfDF = asfParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-    reports = asfParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+    reports = asfParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method)
     asfParser.outputReport(reports=reports)

@@ -16,7 +16,8 @@ class HBYParser(Parser):
         # 更改列名
         hbyDF.columns = elementList
         # 检查列名是否重复或者包括空值
-        self.checkColumnsIsContainsDuplicateOrNan(hbyDF)
+        # self.checkColumnsIsContainsDuplicateOrNan(hbyDF)
+        hbyDF = self.get_valid_dataframe(hbyDF)
         # 填充缺失项,向下填充
         hbyDF['DATE'].fillna(method='ffill', inplace=True)
         # 删除表头

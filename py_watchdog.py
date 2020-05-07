@@ -68,8 +68,7 @@ class WatchDogObServer():
 
         scnDF = self.scnParser.getSCNDF(filename=filename, sheet_name=sheet_name)
         increamentDF = self.scnParser.getIncreamentDF(srcDF=scnDF, filename=filename, sheet_name=sheet_name)
-        reports = self.scnParser.buildReport(dataframe=increamentDF, sheet_name='SCN', method=method,
-                                             startEleNum=4)
+        reports = self.scnParser.buildReport(dataframe=increamentDF, sheet_name='SCN', method=method)
         self.scnParser.outputReport(reports=reports)
         self.scnParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -80,8 +79,7 @@ class WatchDogObServer():
 
         jdyDF = self.jdyParser.getJDYDF(filename=filename, sheet_name=sheet_name)
         increamentDF = self.jdyParser.getIncreamentDF(srcDF=jdyDF, filename=filename, sheet_name=sheet_name)
-        reports = self.jdyParser.buildReport(dataframe=increamentDF, sheet_name='JDY', method=method,
-                                             startEleNum=4)
+        reports = self.jdyParser.buildReport(dataframe=increamentDF, sheet_name='JDY', method=method)
         self.jdyParser.outputReport(reports=reports)
         self.jdyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -92,8 +90,7 @@ class WatchDogObServer():
 
         hbyDF = self.hbyParser.getHBYDF(filename=filename, sheet_name=sheet_name)
         increamentDF = self.hbyParser.getIncreamentDF(srcDF=hbyDF, filename=filename, sheet_name=sheet_name)
-        reports = self.hbyParser.buildReport(dataframe=increamentDF, sheet_name='HBY', method=method,
-                                             startEleNum=3)
+        reports = self.hbyParser.buildReport(dataframe=increamentDF, sheet_name='HBY', method=method)
         self.hbyParser.outputReport(reports=reports)
         self.hbyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -104,8 +101,7 @@ class WatchDogObServer():
 
         qtyDF = self.qtyParser.getQTYDF(filename=filename, sheet_name=sheet_name)
         increamentDF = self.qtyParser.getIncreamentDF(srcDF=qtyDF, filename=filename, sheet_name=sheet_name)
-        reports = self.qtyParser.buildReport(dataframe=increamentDF, sheet_name='QTY', method=method,
-                                             startEleNum=4)
+        reports = self.qtyParser.buildReport(dataframe=increamentDF, sheet_name='QTY', method=method)
         self.qtyParser.outputReport(reports=reports)
         self.qtyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -122,8 +118,7 @@ class WatchDogObServer():
         for sheet_name in sheet_list:
             xjyDF = self.xjyParser.getXJYDF(filename=filename, sheet_name=sheet_name)
             increamentDF = self.xjyParser.getIncreamentDF(srcDF=xjyDF, filename=filename, sheet_name=sheet_name)
-            reports = self.xjyParser.buildReport(dataframe=increamentDF, sheet_name='XJY', method=method,
-                                                 startEleNum=4)
+            reports = self.xjyParser.buildReport(dataframe=increamentDF, sheet_name='XJY', method=method)
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -133,7 +128,7 @@ class WatchDogObServer():
         # 从文件名中获取method
         method = Path.splitFullPathFileName(filename)['main'][11:]
         asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method)
         self.afsParser.outputReport(reports=reports)
         self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
@@ -154,7 +149,7 @@ class WatchDogObServer():
         # 从文件名中获取method
         method = Path.splitFullPathFileName(filename)['main'][11:]
         asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method, startEleNum=2)
+        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method)
         self.afsParser.outputReport(reports=reports)
         self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 

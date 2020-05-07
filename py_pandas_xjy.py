@@ -13,10 +13,11 @@ class XJYParser(Parser):
         xjyDF = pd.read_excel(io=filename, **dict)
         print(xjyDF)
         # 检查列名是否重复或者空值
-        elementList = xjyDF.iloc[0:1].values.tolist()[0]
-        xjyDF.columns = elementList
-        print('Element list is %s' % elementList)
-        self.checkColumnsIsContainsDuplicateOrNan(dataFrame=xjyDF)
+        xjyDF=self.get_valid_dataframe(xjyDF)
+        # elementList = xjyDF.iloc[0:1].values.tolist()[0]
+        # xjyDF.columns = elementList
+        # print('Element list is %s' % elementList)
+        # self.checkColumnsIsContainsDuplicateOrNan(dataFrame=xjyDF)
         # 删除表头
         xjyDF.drop(axis=0, index=[0, 1], inplace=True)
         # 填充缺失项
@@ -50,6 +51,6 @@ if __name__ == '__main__':
 
     xjyDF = xjyParser.getXJYDF(filename=filename, sheet_name=sheet_name)
     increamentDF = xjyParser.getIncreamentDF(srcDF=xjyDF, filename=filename, sheet_name=sheet_name)
-    reports = xjyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method, startEleNum=4)
+    reports = xjyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
     xjyParser.outputReport(reports=reports)
     xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
