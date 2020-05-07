@@ -16,8 +16,6 @@ from py_pandas_scn import SCNParser
 from py_pandas_xjy import XJYParser
 from py_path import Path
 
-from py_config import ConfigFactory as configFacoty
-
 
 class WatchDogObServer():
 
@@ -51,6 +49,7 @@ class WatchDogObServer():
         filename = event.src_path
         _f = xlrd.open_workbook(filename)
         sheet_names = _f.sheet_names()
+        # 动态获取数据处理模块
         sheetName2Worker = dict(self.config.items('sheetname'))
         targets = list(sheetName2Worker.keys())
         workers = []

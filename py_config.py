@@ -1,6 +1,6 @@
+import configparser
 import os
 from configparser import ConfigParser
-import configparser
 
 
 class ConfigFactory():

@@ -13,6 +13,7 @@ from py_logging import LoggerFactory
 from py_watchdog import WatchDogObServer
 import win32timezone
 
+
 # Watchdog for CCLAS Windows Service 版本
 class WatchDogService(win32serviceutil.ServiceFramework):
     _svc_name_ = "WatchDogService"
