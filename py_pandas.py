@@ -69,6 +69,7 @@ class Parser():
         self.logger.debug(srcDF.dtypes)
         self.logger.debug(srcDF)
 
+        # 新数据转存处理：用于比较必须转存后再取出，否则不能保证数据比较的一致性
         newFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='new')
         self.toSeries(dataFrame=srcDF, filename=newFile)
         newDF = self.fromSeries(filename=newFile)
@@ -76,21 +77,27 @@ class Parser():
         self.logger.debug(newDF.dtypes)
         self.logger.debug(newDF)
 
+        # 旧数据读出
         oldFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='old')
         oldDF = self.fromSeries(oldFile)
         self.logger.debug('===oldDF===')
         self.logger.debug(oldDF.dtypes)
         self.logger.debug(oldDF)
 
-        # 按照新数据集合结构生成集合容器
+        # 按照新数据集合结构生成新的集合容器
         tmp_df = DataFrame(columns=newDF.columns.tolist())
+
         # 将旧数据集合\新数据集合都装入容器获取新旧集合的并集
         tmp_df = pd.concat([tmp_df, oldDF])
+
         # 填充nan值
         tmp_df.fillna('', inplace=True)
-        # 删除重复
+
+        # 删除重复：得到扩容后数据变化集合，用于比较
         tmp_df.drop_duplicates(keep=False)
+
         self.logger.debug('===tmpDF===')
+
         tmp_file = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='tmp')
         self.toSeries(dataFrame=tmp_df, filename=tmp_file)
         tmp_df = self.fromSeries(filename=tmp_file)

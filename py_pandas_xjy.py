@@ -22,7 +22,9 @@ class XJYParser(Parser):
         # 处理日期和时间列
         try:
             xjyDF['DATE'] = pd.to_datetime(xjyDF['DATE'], format='%m/%d/%Y')
+            xjyDF['DATE'] = xjyDF['DATE'].dt.strftime('%Y-%m-%d')
             xjyDF['TIME'] = pd.to_datetime(xjyDF['TIME'], format='%H:%M:%S')
+            xjyDF['TIME'] = xjyDF['TIME'].dt.strftime('%H:%M:%S')
         except ValueError as error:
             logger.error(error)
         # 删除空行

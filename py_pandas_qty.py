@@ -23,7 +23,9 @@ class QTYParser(Parser):
         # 处理日期和时间列
         try:
             qtyDF['DATE'] = pd.to_datetime(qtyDF['DATE'], format='%Y-%m-%d')
+            qtyDF['DATE']=qtyDF['DATE'].dt.strftime('%Y-%m-%d')
             qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], format='%H:%M:%S')
+            qtyDF['TIME']=qtyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
             logger.error(error)
         # 删除空行
