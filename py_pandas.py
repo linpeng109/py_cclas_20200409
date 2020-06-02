@@ -1,9 +1,12 @@
+import base64
 import os
 from datetime import datetime
 
 import pandas as pd
 from pandas import DataFrame
 
+from py_config import ConfigFactory
+from py_logging import LoggerFactory
 from py_path import Path
 
 
@@ -39,6 +42,11 @@ class Parser():
     def get_valid_dataframe(self, srcDF: DataFrame):
         # 获取列名
         _elements = srcDF.iloc[0:1].values.tolist()[0]
+        # 去除列名中的空格
+        # _r = []
+        # for _ele in _elements:
+        #     _r.append(str(_ele).strip())
+        # _elements = _r
         # 列重新命名
         srcDF.columns = _elements
         # 列名去重复
@@ -119,36 +127,49 @@ class Parser():
     def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str):
         reports = []
         for row in dataframe.itertuples():
+            # 数据报告
+            element_report = ''
 
-            # 1 获取特定格式的日期和时间值
-            try:
-                year_month = datetime.strftime(getattr(row, 'DATE'), '%y%m')
-                month_day = datetime.strftime(getattr(row, 'DATE'), '%m%d')
-            except ValueError as error:
-                year_month = 'yymm'
-                month_day = 'mmdd'
-                self.logger.error(error)
-
-            # 2 获取TIME，若不存在TIME字段，则以''替代
-            try:
-                hour = '-' + getattr(row, 'TIME').split(':')[0]
-            except AttributeError:
-                hour = ''
-
-            # 3 获取simpleid
-            sampleid = '-' + str(getattr(row, 'SAMPLEID'))
-
-            # 4 获取元素数据
             # 非空列数
             not_null_cols_num = 0
 
-            element_report = ''
+            # 初始化构建元素
+            year_month = '----'
+            month_day = '----'
+            hour = ''
+            sample = ''
+            sampleid = ''
+
+            # 构建结构元素
+            for element_name in dataframe.columns:
+
+                # 1 获取特定格式的日期和时间值
+                if element_name in ['DATE']:
+                    year_month = datetime.strftime(getattr(row, element_name), '%y%m')
+                    month_day = datetime.strftime(getattr(row, element_name), '%m%d')
+
+                # 2 获取TIME，若不存在TIME字段，则以''替代
+                if element_name in ['TIME']:
+                    hour = '-' + getattr(row, 'TIME').split(':')[0]
+
+                # 3 获取simpleid
+                if element_name in ['SAMPLEID']:
+                    sampleid = '-' + str(getattr(row, element_name))
+
+                # 4 获取SAMPLE字段
+                if element_name in ['SAMPLE', 'SAMPLES']:
+                    sample_handle = self.config.get('cclas', 'sample_handle')
+                    if sample_handle == 'plan':
+                        sample = str(getattr(row, element_name))
+                    elif sample_handle == 'base64':
+                        sample = self.base64_encode(str(getattr(row, element_name)))
+                    else:
+                        sample = ''
+
+            # 5 获取元素数据
             for element_name in dataframe.columns:
                 # 检测是否是化验数据项
                 if element_name in ['DATE', 'TIME', 'SAMPLEID', 'SAMPLE', 'SAMPLES']:
-                    pass
-                # SAMPLEID项不能是空值或者空格
-                elif str(getattr(row, 'SAMPLEID')).strip() == '':
                     pass
                 else:
                     # 去除两端空格
@@ -156,19 +177,31 @@ class Parser():
                     element_value.strip()
                     # 只添加非空值的数据项
                     if element_value:
+                        # 数据精确到小数点后8位
                         element_report = element_report + ('%-10s%-10.8s' % (element_name, element_value))
                         not_null_cols_num = not_null_cols_num + 1
 
-            # 如果存在有效（非空的）化验元素则生成报告
+            # 如果存在有效（非空的）化验元素并且sampleid不是空则生成报告and sampleid.strip() != ''
             if not_null_cols_num > 0:
                 # 输出格式化
-                report = ('%-20s%-10s%-20s%02d%s' %
-                          (sheet_name + year_month,
-                           method,
-                           month_day + hour + sampleid,
-                           not_null_cols_num,
-                           element_report))
+                if sample:
+                    report = ('%-20s%-10s%-20s%-40s%02d%s' %
+                              (sheet_name + year_month,
+                               method,
+                               month_day + hour + sampleid,
+                               sample,
+                               not_null_cols_num,
+                               element_report))
+                else:
+                    report = ('%-20s%-10s%-20s%02d%s' %
+                              (sheet_name + year_month,
+                               method,
+                               month_day + hour + sampleid,
+                               not_null_cols_num,
+                               element_report))
+
                 reports.append(report)
+
         return reports
 
     # 写出单行数据文件
@@ -202,3 +235,17 @@ class Parser():
             os.remove(oldFile)
         if os.path.isfile(newFile):
             os.rename(newFile, oldFile)
+
+    def base64_encode(self, input_str: str):
+        input_str = input_str.encode('utf-8')
+        result = base64.b64encode(input_str)
+        return str(result, encoding='utf-8')
+
+
+if __name__ == '__main__':
+    config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
+    logger = LoggerFactory(config=config).getLogger()
+    parser = Parser(config=config, logger=logger)
+    input_str = '中文测试'
+    result = parser.base64_encode(input_str)
+    print((result))

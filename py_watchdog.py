@@ -199,7 +199,7 @@ class WatchDogObServer():
 
         self.observer.start()
 
-        self.logger.info('WatchDog Observer for CCLAS is startting.....')
+        self.logger.info('Data Grabbing Robot for CCLAS is startting.....')
         self.logger.info('patterns=%s' % patterns)
         self.logger.info('path=%s' % path)
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
@@ -208,7 +208,7 @@ class WatchDogObServer():
                 time.sleep(self.config.getfloat('watchdog', 'delay'))
         except KeyboardInterrupt:
             self.observer.stop()
-            self.logger.info('WatchDog Observer is stoped.')
+            self.logger.info('Data Grabbing Robot is stoped.')
         self.observer.join()
 
     def stop(self):

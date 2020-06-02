@@ -17,8 +17,8 @@ import win32timezone
 # Watchdog for CCLAS Windows Service 版本
 class WatchDogService(win32serviceutil.ServiceFramework):
     _svc_name_ = "WatchDogService"
-    _svc_display_name_ = "WatchDog Service"
-    _svc_description_ = "WatchDog for CCLAS Sinomine.com.cn"
+    _svc_display_name_ = "Data Grabbing Robot"
+    _svc_description_ = "Data Grabbing Robot for CCLAS by Sinomine.com.cn"
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
