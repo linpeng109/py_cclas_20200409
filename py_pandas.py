@@ -158,7 +158,7 @@ class Parser():
 
                 # 4 获取SAMPLE字段
                 if element_name in ['SAMPLE', 'SAMPLES']:
-                    sample_handle = self.config.get('cclas', 'sample_handle')
+                    sample_handle = self.config.get('sy', 'sample_handle')
                     if sample_handle == 'plan':
                         sample = str(getattr(row, element_name))
                     elif sample_handle == 'base64':
@@ -208,7 +208,7 @@ class Parser():
     def outputReport(self, reports: list):
         self.logger.debug('===reports===')
         for i in range(len(reports)):
-            outpath = self.config.get('cclas', 'outputdir')
+            outpath = self.config.get('sy', 'outputdir')
             if os.path.isdir(outpath) != True:
                 os.mkdir(outpath)
             main_file_name_part_1 = Path.get_validate_filename(reports[i][0:20].replace(' ', ''))
@@ -236,10 +236,19 @@ class Parser():
         if os.path.isfile(newFile):
             os.rename(newFile, oldFile)
 
+    # 使用base64方式汉字转换
     def base64_encode(self, input_str: str):
         input_str = input_str.encode('utf-8')
         result = base64.b64encode(input_str)
         return str(result, encoding='utf-8')
+
+    # 获取新文件名
+    def getNewFilename(self, filename, type='default'):
+        newpath = self.config.get(type, 'outpath')
+        Path.outpathIsExist(newpath)
+        fileinfo = Path.splitFullPathFileName(filename)
+        newfilename = (newpath + fileinfo.get('sep') + fileinfo.get('main') + '_OK' + '.csv')
+        return newfilename
 
 
 if __name__ == '__main__':

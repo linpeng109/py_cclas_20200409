@@ -2,11 +2,11 @@ import multiprocessing
 import time
 from datetime import datetime
 
-import pandas as pd
 import xlrd
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserver as Observer
 
+from py_pandas_aas import AASParser
 from py_pandas_afs import AFSParser
 from py_pandas_hby import HBYParser
 from py_pandas_hcs import HCSParser
@@ -14,7 +14,6 @@ from py_pandas_jdy import JDYParser
 from py_pandas_qty import QTYParser
 from py_pandas_scn import SCNParser
 from py_pandas_xjy import XJYParser
-from py_path import Path
 
 
 class WatchDogObServer():
@@ -29,13 +28,7 @@ class WatchDogObServer():
         self.xjyParser = XJYParser(config=config, logger=logger)
         self.afsParser = AFSParser(config=config, logger=logger)
         self.hcsParser = HCSParser(config=config, logger=logger)
-
-    def __getNewFilename(self, filename, type='default'):
-        newpath = self.config.get(type, 'outpath')
-        Path.outpathIsExist(newpath)
-        fileinfo = Path.splitFullPathFileName(filename)
-        newfilename = (newpath + fileinfo.get('sep') + fileinfo.get('main') + '_OK' + '.csv')
-        return newfilename
+        self.aasParser = AASParser(config=config, logger=logger)
 
     def on_modified(self, event):
         self.logger.debug(event)
@@ -122,66 +115,21 @@ class WatchDogObServer():
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def afsWorker(self, event):
-        filename = event.src_path
-        sheet_name = '样品测量数据'
-        # 从文件名中获取method
-        method = Path.splitFullPathFileName(filename)['main'][11:]
-        asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method)
-        self.afsParser.outputReport(reports=reports)
-        self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
-
     def afs2csvWorker(self, event):
         filename = event.src_path
-        dict = {'sheet_name': '样品测量数据', 'header': None}
-        afsDf = pd.read_excel(filename, **dict)
-        afsDf.fillna('', inplace=True)
-        afsDf.drop(index=[0, 1, 2], inplace=True)
+        afsDf = self.afsParser.getAFSDF(filename=filename, sheet_name='样品测量数据')
         self.logger.debug(afsDf)
-        newfilename = self.__getNewFilename(filename=filename, type='afs')
-        encoding = self.config.get('afs', 'encoding')
-        afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
-
-    def afs2reportWorker(self, event):
-        filename = event.src_path
-        sheet_name = '样品测量数据'
-        # 从文件名中获取method
-        method = Path.splitFullPathFileName(filename)['main'][11:]
-        asfDF = self.afsParser.getAFSDF(filename=filename, sheet_name=sheet_name)
-        reports = self.afsParser.buildReport(dataframe=asfDF, sheet_name='ASF', method=method)
-        self.afsParser.outputReport(reports=reports)
-        self.afsParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
     def hcs2csvWorker(self, event):
         filename = event.src_path
-        dict = {'sheet_name': 0, 'header': None}
-        hcsDf = pd.read_excel(filename, **dict)
-        # 删除表标题
-        hcsDf.drop(index=[0, 1], inplace=True)
-        # 按照0列排列升序
-        hcsDf.sort_index(0, ascending=False, inplace=True)
-        hcsDf.fillna('', inplace=True)
-        # 删除空列
-        hcsDf.dropna(axis=1, how='any', inplace=True)
+        hcsDf = self.hcsParser.getHCSDF(sheet_name=0, filename=filename)
         self.logger.debug(hcsDf)
-        newfilename = self.__getNewFilename(filename=filename, type='hcs')
-        encoding = self.config.get('hcs', 'encoding')
-        hcsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
 
     def aas2csvWorker(self, event):
         filename = event.src_path
-        dict = {'sheet_name': 0, 'header': None}
-        afsDf = pd.read_excel(filename, **dict)
-        afsDf.fillna('', inplace=True)
-        afsDf.drop(index=[0, 1, 2], inplace=True)
-        self.logger.debug(afsDf)
-        newfilename = self.__getNewFilename(filename=filename, type='aas')
-        encoding = self.config.get('aas', 'encoding')
-        afsDf.to_csv(newfilename, index=None, header=None, encoding=encoding, line_terminator='\r\n')
+        aasDf = self.aasParser.getAASDF(filename=filename, sheet_name=0)
 
     def start(self):
-        path = self.config.get('watchdog', 'path')
         patterns = self.config.get('watchdog', 'patterns').split(';')
         ignore_directories = self.config.getboolean('watchdog', 'ignore_directories')
         ignore_patterns = self.config.get('watchdog', 'ignore_patterns').split(';')
@@ -194,14 +142,24 @@ class WatchDogObServer():
                                                     case_sensitive=case_sensitive)
         event_handler.on_created = self.on_created
 
+
+        sy_path = self.config.get('sy', 'path')
+        hcs_path = self.config.get('hcs', 'path')
+        afs_path = self.config.get('afs', 'path')
+        aas_path = self.config.get('aas', 'path')
+
         self.observer = Observer()
-        self.observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
+
+        self.observer.schedule(path=sy_path, event_handler=event_handler, recursive=recursive)
+        self.observer.schedule(path=hcs_path, event_handler=event_handler, recursive=recursive)
+        self.observer.schedule(path=afs_path, event_handler=event_handler, recursive=recursive)
+        self.observer.schedule(path=aas_path, event_handler=event_handler, recursive=recursive)
 
         self.observer.start()
 
         self.logger.info('Data Grabbing Robot for CCLAS is startting.....')
         self.logger.info('patterns=%s' % patterns)
-        self.logger.info('path=%s' % path)
+        self.logger.info('path=%s' % sy_path)
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
         try:
             while self.observer.is_alive():
