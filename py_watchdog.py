@@ -170,4 +170,4 @@ class WatchDogObServer():
         self.observer.join()
 
     def stop(self):
-        self.observer.start()
+        self.observer.stop()

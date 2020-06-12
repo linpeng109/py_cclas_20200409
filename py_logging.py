@@ -2,7 +2,8 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-import psutil as psutil
+import psutil
+
 from py_config import ConfigFactory
 
 
