@@ -1,10 +1,12 @@
 import multiprocessing
+import os
 import time
 from datetime import datetime
 
 import xlrd
 from watchdog.events import PatternMatchingEventHandler
-from watchdog.observers.polling import PollingObserver as Observer
+# from watchdog.observers.polling import PollingObserver as Observer
+from watchdog.observers.polling import PollingObserverVFS as Observer
 
 from py_pandas_aas import AASParser
 from py_pandas_afs import AFSParser
@@ -29,33 +31,94 @@ class WatchDogObServer():
         self.afsParser = AFSParser(config=config, logger=logger)
         self.hcsParser = HCSParser(config=config, logger=logger)
         self.aasParser = AASParser(config=config, logger=logger)
-
-    def on_modified(self, event):
-        self.logger.debug(event)
+        # 动态获取数据处理模块
+        self.sheetName2Worker = dict(self.config.items('sheetname'))
 
     def on_any_event(self, event):
         self.logger.debug(event)
 
-    # 当创建文件时触发
-    def on_created(self, event):
-
+    def on_modified(self, event):
+        self.logger.debug(event)
         filename = event.src_path
+        self.on_handle(filename=filename)
+
+    def on_moved(self, event):
+        self.logger.debug(event)
+        filename = event.dest_path
+        self.on_handle(filename=filename)
+
+    def on_created(self, event):
+        self.logger.debug(event)
+        filename = event.src_path
+        self.on_handle(filename=filename)
+
+    # 当创建文件时触发
+    def on_handle(self, filename):
         _f = xlrd.open_workbook(filename)
         sheet_names = _f.sheet_names()
-        # 动态获取数据处理模块
-        sheetName2Worker = dict(self.config.items('sheetname'))
-        targets = list(sheetName2Worker.keys())
+        targets = list(self.sheetName2Worker.keys())
         workers = []
         for sheet_name in sheet_names:
             if sheet_name in targets:
-                workers.append('%s' % (sheetName2Worker.get(sheet_name)))
+                workers.append('%s' % (self.sheetName2Worker.get(sheet_name)))
 
         for worker in workers:
             self.logger.debug('Starting  %s ......' % worker)
-            multiprocessing.Process(target=eval('self.' + worker)(event))
+            p = multiprocessing.Process(target=eval('self.' + worker), args=(filename,))
+            p.start()
+            p.join()
 
-    def scnWorker(self, event):
-        filename = event.src_path
+    def start(self):
+        patterns = self.config.get('watchdog', 'patterns').split(';')
+        ignore_directories = self.config.getboolean('watchdog', 'ignore_directories')
+        ignore_patterns = self.config.get('watchdog', 'ignore_patterns').split(';')
+        case_sensitive = self.config.getboolean('watchdog', 'case_sensitive')
+        recursive = self.config.getboolean('watchdog', 'recursive')
+
+        event_handler = PatternMatchingEventHandler(patterns=patterns,
+                                                    ignore_patterns=ignore_patterns,
+                                                    ignore_directories=ignore_directories,
+                                                    case_sensitive=case_sensitive)
+        # event_handler.on_any_event = self.on_any_event
+        event_handler.on_created = self.on_created
+        # event_handler.on_modified = self.on_modified
+        event_handler.on_moved = self.on_moved
+
+        sy_path = self.config.get('sy', 'path')
+        hcs_path = self.config.get('hcs', 'path')
+        afs_path = self.config.get('afs', 'path')
+        aas_path = self.config.get('aas', 'path')
+        paths = [sy_path, hcs_path, afs_path, aas_path]
+        self.observer = Observer(stat=os.stat, listdir=os.listdir)
+        # self.observer = Observer()
+        for path in paths:
+            self.observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
+
+        # self.observer.schedule(path=sy_path, event_handler=event_handler, recursive=recursive)
+        # self.observer.schedule(path=hcs_path, event_handler=event_handler, recursive=recursive)
+        # self.observer.schedule(path=afs_path, event_handler=event_handler, recursive=recursive)
+        # self.observer.schedule(path=aas_path, event_handler=event_handler, recursive=recursive)
+
+        self.observer.start()
+
+        self.logger.info('Data Grabbing Robot for CCLAS is startting.....')
+        self.logger.info('patterns=%s' % patterns)
+        self.logger.info('path=%s' % paths)
+        self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
+        try:
+            while self.observer.is_alive():
+                time.sleep(self.config.getfloat('watchdog', 'delay'))
+        except KeyboardInterrupt:
+            self.observer.stop()
+            self.logger.info('Data Grabbing Robot is stoped.')
+        self.observer.join()
+
+    def stop(self):
+        self.observer.stop()
+
+    # 各种worker——数据处理模块
+    def scnWorker(self, filename):
+        # filename = event.src_path
         sheet_name = 'SCN'
         method = 'SY001'
 
@@ -65,8 +128,8 @@ class WatchDogObServer():
         self.scnParser.outputReport(reports=reports)
         self.scnParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def jdyWorker(self, event):
-        filename = event.src_path
+    def jdyWorker(self, filename):
+        # filename = event.src_path
         sheet_name = 'JDY'
         method = 'SY001'
 
@@ -76,8 +139,8 @@ class WatchDogObServer():
         self.jdyParser.outputReport(reports=reports)
         self.jdyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def hbyWorker(self, event):
-        filename = event.src_path
+    def hbyWorker(self, filename):
+        # filename = event.src_path
         sheet_name = 'HBY'
         method = 'SY001'
 
@@ -87,8 +150,8 @@ class WatchDogObServer():
         self.hbyParser.outputReport(reports=reports)
         self.hbyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def qtyWorker(self, event):
-        filename = event.src_path
+    def qtyWorker(self, filename):
+        # filename = event.src_path
         sheet_name = 'QTY'
         method = 'SY001'
 
@@ -98,8 +161,8 @@ class WatchDogObServer():
         self.qtyParser.outputReport(reports=reports)
         self.qtyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def xjyWorker(self, event):
-        filename = event.src_path
+    def xjyWorker(self, filename):
+        # filename = event.src_path
         # 取得当前月份01、02……
         sheet_list = []
         current_month = datetime.today().month
@@ -115,59 +178,16 @@ class WatchDogObServer():
             self.xjyParser.outputReport(reports=reports)
             self.xjyParser.reportFileHandle(filename=filename, sheet_name=sheet_name)
 
-    def afs2csvWorker(self, event):
-        filename = event.src_path
+    def afs2csvWorker(self, filename):
+        # filename = event.src_path
         afsDf = self.afsParser.getAFSDF(filename=filename, sheet_name='样品测量数据')
         self.logger.debug(afsDf)
 
-    def hcs2csvWorker(self, event):
-        filename = event.src_path
+    def hcs2csvWorker(self, filename):
+        # filename = event.src_path
         hcsDf = self.hcsParser.getHCSDF(sheet_name=0, filename=filename)
         self.logger.debug(hcsDf)
 
-    def aas2csvWorker(self, event):
-        filename = event.src_path
+    def aas2csvWorker(self, filename):
+        # filename = event.src_path
         aasDf = self.aasParser.getAASDF(filename=filename, sheet_name=0)
-
-    def start(self):
-        patterns = self.config.get('watchdog', 'patterns').split(';')
-        ignore_directories = self.config.getboolean('watchdog', 'ignore_directories')
-        ignore_patterns = self.config.get('watchdog', 'ignore_patterns').split(';')
-        case_sensitive = self.config.getboolean('watchdog', 'case_sensitive')
-        recursive = self.config.getboolean('watchdog', 'recursive')
-
-        event_handler = PatternMatchingEventHandler(patterns=patterns,
-                                                    ignore_patterns=ignore_patterns,
-                                                    ignore_directories=ignore_directories,
-                                                    case_sensitive=case_sensitive)
-        event_handler.on_created = self.on_created
-
-
-        sy_path = self.config.get('sy', 'path')
-        hcs_path = self.config.get('hcs', 'path')
-        afs_path = self.config.get('afs', 'path')
-        aas_path = self.config.get('aas', 'path')
-
-        self.observer = Observer()
-
-        self.observer.schedule(path=sy_path, event_handler=event_handler, recursive=recursive)
-        self.observer.schedule(path=hcs_path, event_handler=event_handler, recursive=recursive)
-        self.observer.schedule(path=afs_path, event_handler=event_handler, recursive=recursive)
-        self.observer.schedule(path=aas_path, event_handler=event_handler, recursive=recursive)
-
-        self.observer.start()
-
-        self.logger.info('Data Grabbing Robot for CCLAS is startting.....')
-        self.logger.info('patterns=%s' % patterns)
-        self.logger.info('path=%s' % sy_path)
-        self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
-        try:
-            while self.observer.is_alive():
-                time.sleep(self.config.getfloat('watchdog', 'delay'))
-        except KeyboardInterrupt:
-            self.observer.stop()
-            self.logger.info('Data Grabbing Robot is stoped.')
-        self.observer.join()
-
-    def stop(self):
-        self.observer.stop()

@@ -11,7 +11,6 @@ import win32serviceutil
 from py_config import ConfigFactory
 from py_logging import LoggerFactory
 from py_watchdog import WatchDogObServer
-import win32timezone
 
 
 # Watchdog for CCLAS Windows Service 版本
@@ -40,7 +39,7 @@ class WatchDogService(win32serviceutil.ServiceFramework):
         self.wObserver.start()
 
         rc = None
-        while rc != win32event.WAIT_OBJECT_0:p
+        while rc != win32event.WAIT_OBJECT_0:
             # with open('e:\\TestService.log', 'a') as f:
             #     f.write('test service running...\n')
             rc = win32event.WaitForSingleObject(self.hWaitStop, 5000)

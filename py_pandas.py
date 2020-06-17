@@ -33,8 +33,8 @@ class Parser():
     # 反序列化
     def fromSeries(self, filename: str):
         try:
-            # df = pd.read_json(path_or_buf=filename, encoding='gbk')
-            df = pd.read_json(path_or_buf=filename)
+            df = pd.read_json(path_or_buf=filename, encoding='gbk')
+            # df = pd.read_json(path_or_buf=filename)
         except ValueError:
             df = DataFrame()
         return df
@@ -103,10 +103,9 @@ class Parser():
         tmp_df.fillna('', inplace=True)
 
         # 删除重复：得到扩容后数据变化集合，用于比较
-        tmp_df = tmp_df.drop_duplicates(keep='first', inplace=True)
+        tmp_df = tmp_df.drop_duplicates()
 
         self.logger.debug('===tmpDF===')
-
         tmp_file = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='tmp')
         self.toSeries(dataFrame=tmp_df, filename=tmp_file)
         tmp_df = self.fromSeries(filename=tmp_file)
