@@ -44,8 +44,14 @@ class WatchDogObServer():
 
     def on_moved(self, event):
         self.logger.debug(event)
-        filename = event.dest_path
-        self.on_handle(filename=filename)
+        if '.xlsx' in event.dest_path:
+            filename = event.dest_path
+            time.sleep(3)
+            self.on_handle(filename=filename)
+        else:
+            # filename = event.src_path
+            time.sleep(3)
+            pass
 
     def on_created(self, event):
         self.logger.debug(event)
@@ -54,19 +60,24 @@ class WatchDogObServer():
 
     # 当创建文件时触发
     def on_handle(self, filename):
-        _f = xlrd.open_workbook(filename)
-        sheet_names = _f.sheet_names()
-        targets = list(self.sheetName2Worker.keys())
-        workers = []
-        for sheet_name in sheet_names:
-            if sheet_name in targets:
-                workers.append('%s' % (self.sheetName2Worker.get(sheet_name)))
+        try:
 
-        for worker in workers:
-            self.logger.debug('Starting  %s ......' % worker)
-            p = multiprocessing.Process(target=eval('self.' + worker), args=(filename,))
-            p.start()
-            p.join()
+            _f = xlrd.open_workbook(filename)
+            sheet_names = _f.sheet_names()
+            targets = list(self.sheetName2Worker.keys())
+            workers = []
+            for sheet_name in sheet_names:
+                if sheet_name in targets:
+                    workers.append('%s' % (self.sheetName2Worker.get(sheet_name)))
+
+            for worker in workers:
+                self.logger.debug('Starting  %s ......' % worker)
+                p = multiprocessing.Process(target=eval('self.' + worker)(filename))
+                p.start()
+                p.join()
+        except PermissionError:
+            self.logger.error('PermissionError!!!!')
+            pass
 
     def start(self):
         patterns = self.config.get('watchdog', 'patterns').split(';')
@@ -93,17 +104,11 @@ class WatchDogObServer():
         # self.observer = Observer()
         for path in paths:
             self.observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
-
-        # self.observer.schedule(path=sy_path, event_handler=event_handler, recursive=recursive)
-        # self.observer.schedule(path=hcs_path, event_handler=event_handler, recursive=recursive)
-        # self.observer.schedule(path=afs_path, event_handler=event_handler, recursive=recursive)
-        # self.observer.schedule(path=aas_path, event_handler=event_handler, recursive=recursive)
-
         self.observer.start()
 
         self.logger.info('Data Grabbing Robot for CCLAS is startting.....')
         self.logger.info('patterns=%s' % patterns)
-        self.logger.info('path=%s' % paths)
+        self.logger.info('paths=%s' % paths)
         self.logger.info('delay=%s' % str(self.config.getfloat('watchdog', 'delay')))
         try:
             while self.observer.is_alive():
@@ -111,6 +116,10 @@ class WatchDogObServer():
         except KeyboardInterrupt:
             self.observer.stop()
             self.logger.info('Data Grabbing Robot is stoped.')
+        except PermissionError:
+            self.observer.start()
+        except TypeError:
+            self.observer.start()
         self.observer.join()
 
     def stop(self):

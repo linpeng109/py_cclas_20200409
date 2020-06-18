@@ -20,6 +20,7 @@ class LoggerFactory():
         fileHandler.setFormatter(formatter)
         streamHandler = logging.StreamHandler(sys.stdout)
         streamHandler.setFormatter(formatter)
+
         logger = logging.getLogger()
         logger.addHandler(fileHandler)
         logger.addHandler(streamHandler)
