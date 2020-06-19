@@ -15,7 +15,7 @@ class ConfigFactory():
         config_parser = self._Configparser()
         # 配置文件中使用变量调用
         config_parser._interpolation = configparser.ExtendedInterpolation()
-        config_parser.read(filenames=self.configFile, encoding='GBK')
+        config_parser.read(filenames=self.configFile, encoding='utf-8')
         return config_parser
 
 

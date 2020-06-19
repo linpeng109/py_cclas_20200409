@@ -10,6 +10,7 @@ class AFSParser(Parser):
     def getAFSDF(self, filename: str, sheet_name: str):
         dict = {'sheet_name': sheet_name, 'header': None}
         afs_df = pd.read_excel(filename, **dict)
+
         afs_df.fillna('', inplace=True)
         afs_df.drop(index=[0, 1], inplace=True)
         self.logger.debug(afs_df)

@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import time
 from datetime import datetime
+from zipfile import BadZipFile
 
 import xlrd
 from watchdog.events import PatternMatchingEventHandler
@@ -63,7 +64,9 @@ class WatchDogObServer():
         try:
 
             _f = xlrd.open_workbook(filename)
+
             sheet_names = _f.sheet_names()
+
             targets = list(self.sheetName2Worker.keys())
             workers = []
             for sheet_name in sheet_names:
@@ -77,6 +80,9 @@ class WatchDogObServer():
                 p.join()
         except PermissionError:
             self.logger.error('PermissionError!!!!')
+            pass
+        except BadZipFile:
+            self.logger.error('BadZipFile!!!!')
             pass
 
     def start(self):

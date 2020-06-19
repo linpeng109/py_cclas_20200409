@@ -17,7 +17,7 @@ from py_watchdog import WatchDogObServer
 class WatchDogService(win32serviceutil.ServiceFramework):
     _svc_name_ = "WatchDogService"
     _svc_display_name_ = "Data Grabbing Robot"
-    _svc_description_ = "Data Grabbing Robot for CCLAS by Sinomine.com.cn"
+    _svc_description_ = "Data Grabbing Robot for CCLAS By sinomine.com.cn"
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
