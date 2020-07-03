@@ -27,7 +27,7 @@ class QTYParser(Parser):
             qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], format='%H:%M:%S')
             qtyDF['TIME']=qtyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
-            logger.error(error)
+            self.logger.error(error)
         # 删除空行
         qtyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan

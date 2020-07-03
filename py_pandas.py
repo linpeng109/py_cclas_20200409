@@ -1,7 +1,7 @@
 import base64
 import os
 from datetime import datetime
-
+import decimal
 import pandas as pd
 from pandas import DataFrame
 
@@ -178,7 +178,14 @@ class Parser():
                     # 只添加非空值的数据项
                     if element_value:
                         # 数据精确到小数点后8位
-                        element_report = element_report + ('%-10s%-10.8s' % (element_name, element_value))
+                        try:
+                            element_report = element_report + (
+                                    '%-10s%-10.8f' % (element_name, decimal.Decimal(element_value)))
+                        except Exception as e:
+                            element_report = element_report + (
+                                    '%-10s%-10.8s' % (element_name, element_value))
+                            pass
+
                         not_null_cols_num = not_null_cols_num + 1
 
             # 如果存在有效（非空的）化验元素并且sampleid不是空则生成报告and sampleid.strip() != ''

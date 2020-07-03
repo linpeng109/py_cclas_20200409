@@ -12,7 +12,9 @@ class AASParser(Parser):
         aas_df = pd.read_excel(filename, **dict)
         # 过滤
         aas_df[0] = aas_df[0].astype(str)
-        aas_df = aas_df[aas_df[0].str.contains('UNK-')]
+        # aas_df = aas_df[aas_df[0].str.contains('UNK-|REP-|STD-')]
+        contain_filter = self.config.get('aas', 'filter')
+        aas_df = aas_df[aas_df[0].str.contains(contain_filter)]
         aas_df.fillna('', inplace=True)
         self.logger.debug(aas_df)
         newfilename = self.getNewFilename(filename=filename, type='aas')

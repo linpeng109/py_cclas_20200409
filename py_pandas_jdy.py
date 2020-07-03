@@ -26,7 +26,8 @@ class JDYParser(Parser):
             jdyDF['DATE'] = jdyDF['DATE'].dt.strftime('%Y-%m-%d')
             jdyDF['TIME'] = jdyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
-            logger.error(error)
+            self.logger.error(error)
+
         # 删除空行
         jdyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan

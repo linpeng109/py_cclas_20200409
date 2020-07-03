@@ -78,12 +78,24 @@ class WatchDogObServer():
                 p = multiprocessing.Process(target=eval('self.' + worker)(filename))
                 p.start()
                 p.join()
-        except PermissionError:
-            self.logger.error('PermissionError!!!!')
+        except Exception as error:
+            self.logger.error(error)
             pass
-        except BadZipFile:
-            self.logger.error('BadZipFile!!!!')
-            pass
+        # except PermissionError as error:
+        #     self.logger.error(error)
+        #     pass
+        # except BadZipFile as error:
+        #     self.logger.error(error)
+        #     pass
+        # except AttributeError as error:
+        #     self.logger.error(error)
+        #     pass
+        # except TypeError as error:
+        #     self.logger.error(error)
+        #     pass
+        # except NameError as error:
+        #     self.logger.error(error)
+        #     pass
 
     def start(self):
         patterns = self.config.get('watchdog', 'patterns').split(';')
