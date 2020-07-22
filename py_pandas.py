@@ -1,7 +1,9 @@
+# coding=gbk
 import base64
+import decimal
 import os
 from datetime import datetime
-import decimal
+
 import pandas as pd
 from pandas import DataFrame
 
@@ -11,12 +13,12 @@ from py_path import Path
 
 
 class Parser():
-    # åˆå§‹åŒ–
+    # ³õÊ¼»¯
     def __init__(self, config, logger):
         self.logger = logger
         self.config = config
 
-    # è¾“å…¥è¾“å‡ºæ–‡ä»¶è·¯å¾„è½¬æ¢
+    # ÊäÈëÊä³öÎÄ¼şÂ·¾¶×ª»»
     def filePathNameConverter(self, filename: str, sheet_name: str, prefix: str):
         new_path = self.config.get('json', 'outpath')
         Path.outpathIsExist(new_path)
@@ -25,12 +27,12 @@ class Parser():
                 new_path + fileinfo.get('sep') + prefix + '_' + '_' + fileinfo.get('main') + '.' + sheet_name)
         return new_file_name
 
-    # åºåˆ—åŒ–
+    # ĞòÁĞ»¯
     def toSeries(self, dataFrame: DataFrame, filename: str):
         df = dataFrame.to_json(path_or_buf=filename, force_ascii=False)
         return df
 
-    # ååºåˆ—åŒ–
+    # ·´ĞòÁĞ»¯
     def fromSeries(self, filename: str):
         try:
             df = pd.read_json(path_or_buf=filename, encoding='gbk')
@@ -39,46 +41,46 @@ class Parser():
             df = DataFrame()
         return df
 
-    # è·å–æœ‰æ•ˆæ•°æ®
+    # »ñÈ¡ÓĞĞ§Êı¾İ
     def get_valid_dataframe(self, srcDF: DataFrame):
-        # è·å–åˆ—å
+        # »ñÈ¡ÁĞÃû
         _elements = srcDF.iloc[0:1].values.tolist()[0]
-        # å»é™¤åˆ—åä¸­çš„ç©ºæ ¼
+        # È¥³ıÁĞÃûÖĞµÄ¿Õ¸ñ
         # _r = []
         # for _ele in _elements:
         #     _r.append(str(_ele).strip())
         # _elements = _r
-        # åˆ—é‡æ–°å‘½å
+        # ÁĞÖØĞÂÃüÃû
         srcDF.columns = _elements
-        # åˆ—åå»é‡å¤
+        # ÁĞÃûÈ¥ÖØ¸´
         _elements = list(set(_elements))
-        # åˆ—åå»é™¤nanå€¼é¡¹
+        # ÁĞÃûÈ¥³ınanÖµÏî
         elements = [x for x in _elements if x == x]
         self.logger.debug(elements)
-        # æœ‰æ•ˆæ•°æ®åˆ‡å‰²
+        # ÓĞĞ§Êı¾İÇĞ¸î
         srcDF = srcDF.loc[0:, elements]
-        # è¿”å›æœ‰æ•ˆæ•°æ®
+        # ·µ»ØÓĞĞ§Êı¾İ
         return srcDF
 
-    # æ£€æŸ¥åˆ—åæ˜¯å¦é‡å¤æˆ–åŒ…å«NAN
+    # ¼ì²éÁĞÃûÊÇ·ñÖØ¸´»ò°üº¬NAN
     def checkColumnsIsContainsDuplicateOrNan(self, dataFrame: DataFrame):
         columnsList = dataFrame.columns.tolist()
         colDF = DataFrame(columnsList)
         isNull = colDF.isnull().sum().sum()
         isDuplicate = colDF.duplicated().sum().sum()
         if isNull > 0:
-            raise TypeError('æ•°æ®è½¬æ¢å¤±è´¥ï¼šåŒ–éªŒå…ƒç´ é¡¹åŒ…å«ç©ºå€¼')
+            raise TypeError('Êı¾İ×ª»»Ê§°Ü£º»¯ÑéÔªËØÏî°üº¬¿ÕÖµ')
         if isDuplicate > 0:
-            raise TypeError('æ•°æ®è½¬æ¢å¤±è´¥ï¼šåŒ–éªŒå…ƒç´ é¡¹åŒ…å«é‡å¤å€¼')
+            raise TypeError('Êı¾İ×ª»»Ê§°Ü£º»¯ÑéÔªËØÏî°üº¬ÖØ¸´Öµ')
 
-    # è·å–æ¯”è¾ƒä¸åŒ
+    # »ñÈ¡±È½Ï²»Í¬
     def getIncreamentDF(self, srcDF: DataFrame, filename: str, sheet_name: str):
 
         self.logger.debug('===srcDF===')
         self.logger.debug(srcDF.dtypes)
         self.logger.debug(srcDF)
 
-        # æ–°æ•°æ®è½¬å­˜å¤„ç†ï¼šç”¨äºæ¯”è¾ƒå¿…é¡»è½¬å­˜åå†å–å‡ºï¼Œå¦åˆ™ä¸èƒ½ä¿è¯æ•°æ®æ¯”è¾ƒçš„ä¸€è‡´æ€§
+        # ĞÂÊı¾İ×ª´æ´¦Àí£ºÓÃÓÚ±È½Ï±ØĞë×ª´æºóÔÙÈ¡³ö£¬·ñÔò²»ÄÜ±£Ö¤Êı¾İ±È½ÏµÄÒ»ÖÂĞÔ
         newFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='new')
         self.toSeries(dataFrame=srcDF, filename=newFile)
         newDF = self.fromSeries(filename=newFile)
@@ -86,23 +88,23 @@ class Parser():
         self.logger.debug(newDF.dtypes)
         self.logger.debug(newDF)
 
-        # æ—§æ•°æ®è¯»å‡º
+        # ¾ÉÊı¾İ¶Á³ö
         oldFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='old')
         oldDF = self.fromSeries(oldFile)
         self.logger.debug('===oldDF===')
         self.logger.debug(oldDF.dtypes)
         self.logger.debug(oldDF)
 
-        # æŒ‰ç…§æ–°æ•°æ®é›†åˆç»“æ„ç”Ÿæˆæ–°çš„é›†åˆå®¹å™¨
+        # °´ÕÕĞÂÊı¾İ¼¯ºÏ½á¹¹Éú³ÉĞÂµÄ¼¯ºÏÈİÆ÷
         tmp_df = DataFrame(columns=newDF.columns.tolist())
 
-        # å°†æ—§æ•°æ®é›†åˆ\æ–°æ•°æ®é›†åˆéƒ½è£…å…¥å®¹å™¨è·å–æ–°æ—§é›†åˆçš„å¹¶é›†
+        # ½«¾ÉÊı¾İ¼¯ºÏ\ĞÂÊı¾İ¼¯ºÏ¶¼×°ÈëÈİÆ÷»ñÈ¡ĞÂ¾É¼¯ºÏµÄ²¢¼¯
         tmp_df = pd.concat([tmp_df, oldDF])
 
-        # å¡«å……nanå€¼
+        # Ìî³änanÖµ
         tmp_df.fillna('', inplace=True)
 
-        # åˆ é™¤é‡å¤ï¼šå¾—åˆ°æ‰©å®¹åæ•°æ®å˜åŒ–é›†åˆï¼Œç”¨äºæ¯”è¾ƒ
+        # É¾³ıÖØ¸´£ºµÃµ½À©ÈİºóÊı¾İ±ä»¯¼¯ºÏ£¬ÓÃÓÚ±È½Ï
         tmp_df = tmp_df.drop_duplicates()
 
         self.logger.debug('===tmpDF===')
@@ -113,9 +115,9 @@ class Parser():
         self.logger.debug(tmp_df)
 
         increamentDF = pd.concat([tmp_df, newDF, tmp_df])
-        # æ•°æ®åˆå¹¶åå¿…é¡»å¡«å……ç©ºå€¼ï¼Œå¦åˆ™æ¯”è¾ƒæœ‰è¯¯
+        # Êı¾İºÏ²¢ºó±ØĞëÌî³ä¿ÕÖµ£¬·ñÔò±È½ÏÓĞÎó
         increamentDF.fillna('', inplace=True)
-        # åˆ é™¤é‡å¤éƒ¨åˆ†
+        # É¾³ıÖØ¸´²¿·Ö
         increamentDF = increamentDF.drop_duplicates(keep=False)
         self.logger.debug('===IncreamentDF===')
         self.logger.debug(increamentDF.info())
@@ -123,40 +125,40 @@ class Parser():
 
         return increamentDF
 
-    # ç”Ÿæˆæ•°æ®æŠ¥å‘Šåˆ—è¡¨
+    # Éú³ÉÊı¾İ±¨¸æÁĞ±í
     def buildReport(self, dataframe: DataFrame, sheet_name: str, method: str):
         reports = []
         for row in dataframe.itertuples():
-            # æ•°æ®æŠ¥å‘Š
+            # Êı¾İ±¨¸æ
             element_report = ''
 
-            # éç©ºåˆ—æ•°
+            # ·Ç¿ÕÁĞÊı
             not_null_cols_num = 0
 
-            # åˆå§‹åŒ–æ„å»ºå…ƒç´ 
+            # ³õÊ¼»¯¹¹½¨ÔªËØ
             year_month = '----'
             month_day = '----'
             hour = ''
             sample = ''
             sampleid = ''
 
-            # æ„å»ºç»“æ„å…ƒç´ 
+            # ¹¹½¨½á¹¹ÔªËØ
             for element_name in dataframe.columns:
 
-                # 1 è·å–ç‰¹å®šæ ¼å¼çš„æ—¥æœŸå’Œæ—¶é—´å€¼
+                # 1 »ñÈ¡ÌØ¶¨¸ñÊ½µÄÈÕÆÚºÍÊ±¼äÖµ
                 if element_name in ['DATE']:
                     year_month = datetime.strftime(getattr(row, element_name), '%y%m')
                     month_day = datetime.strftime(getattr(row, element_name), '%m%d')
 
-                # 2 è·å–TIMEï¼Œè‹¥ä¸å­˜åœ¨TIMEå­—æ®µï¼Œåˆ™ä»¥''æ›¿ä»£
+                # 2 »ñÈ¡TIME£¬Èô²»´æÔÚTIME×Ö¶Î£¬ÔòÒÔ''Ìæ´ú
                 if element_name in ['TIME']:
                     hour = '-' + getattr(row, 'TIME').split(':')[0]
 
-                # 3 è·å–simpleid
+                # 3 »ñÈ¡simpleid
                 if element_name in ['SAMPLEID']:
                     sampleid = '-' + str(getattr(row, element_name))
 
-                # 4 è·å–SAMPLEå­—æ®µ
+                # 4 »ñÈ¡SAMPLE×Ö¶Î
                 if element_name in ['SAMPLE', 'SAMPLES']:
                     sample_handle = self.config.get('sy', 'sample_handle')
                     if sample_handle == 'plan':
@@ -166,38 +168,37 @@ class Parser():
                     else:
                         sample = ''
 
-            # 5 è·å–å…ƒç´ æ•°æ®
+            # 5 »ñÈ¡ÔªËØÊı¾İ
             for element_name in dataframe.columns:
-                # æ£€æµ‹æ˜¯å¦æ˜¯åŒ–éªŒæ•°æ®é¡¹
+                # ¼ì²âÊÇ·ñÊÇ»¯ÑéÊı¾İÏî
                 if element_name in ['DATE', 'TIME', 'SAMPLEID', 'SAMPLE', 'SAMPLES']:
                     pass
                 else:
-                    # å»é™¤ä¸¤ç«¯ç©ºæ ¼
+                    # È¥³ıÁ½¶Ë¿Õ¸ñ
                     element_value = str(getattr(row, element_name))
                     element_value.strip()
-                    # åªæ·»åŠ éç©ºå€¼çš„æ•°æ®é¡¹
+                    # Ö»Ìí¼Ó·Ç¿ÕÖµµÄÊı¾İÏî
                     if element_value:
-                        # æ•°æ®ç²¾ç¡®åˆ°å°æ•°ç‚¹å4ä½ï¼Œæ€»æ•°ä¸èƒ½è¶…è¿‡10ä½ï¼ŒåŒ…æ‹¬å°æ•°ç‚¹
+                        # Êı¾İ¾«È·µ½Ğ¡Êıµãºó4Î»£¬×ÜÊı²»ÄÜ³¬¹ı10Î»£¬°üÀ¨Ğ¡Êıµã
                         try:
                             element_report = element_report + (
                                     '%-10s%-10.4f' % (element_name, decimal.Decimal(element_value)))
                         except Exception as e:
-                            element_report = element_report + (
-                                    # '%-10s%-10.4s' % (element_name, element_value))
-                                    '%-10s%-10s' % (element_name, element_value))
+                            element_report = element_report + ('%-10s%-10s' % (element_name, element_value))
                             pass
 
                         not_null_cols_num = not_null_cols_num + 1
 
-            # å¦‚æœå­˜åœ¨æœ‰æ•ˆï¼ˆéç©ºçš„ï¼‰åŒ–éªŒå…ƒç´ å¹¶ä¸”sampleidä¸æ˜¯ç©ºåˆ™ç”ŸæˆæŠ¥å‘Šand sampleid.strip() != ''
+            # Èç¹û´æÔÚÓĞĞ§£¨·Ç¿ÕµÄ£©»¯ÑéÔªËØ²¢ÇÒsampleid²»ÊÇ¿ÕÔòÉú³É±¨¸æand sampleid.strip() != ''
             if not_null_cols_num > 0:
-                # è¾“å‡ºæ ¼å¼åŒ–
+                # Êä³ö¸ñÊ½»¯
                 if sample:
-                    report = ('%-20s%-10s%-20s%-40s%02d%s' %
+                    report = ('%-20s%-10s%-20s%-40s%s%02d%s' %
                               (sheet_name + year_month,
                                method,
                                month_day + hour + sampleid,
                                sample,
+                               '|',  # ÔÚ·Ç¿ÕÔªËØÊıÖ®Ç°£¬¼ÓÈë¡®|¡¯
                                not_null_cols_num,
                                element_report))
                 else:
@@ -212,7 +213,7 @@ class Parser():
 
         return reports
 
-    # å†™å‡ºå•è¡Œæ•°æ®æ–‡ä»¶
+    # Ğ´³öµ¥ĞĞÊı¾İÎÄ¼ş
     def outputReport(self, reports: list):
         self.logger.debug('===reports===')
         for i in range(len(reports)):
@@ -227,12 +228,12 @@ class Parser():
                 main_file_name_part_2,
                 i + 1)
 
-            with open(full_path_filename, 'w+') as file:
+            with open(full_path_filename, mode='w', encoding='gbk') as file:
                 file.write(reports[i])
                 file.close()
             self.logger.debug(reports[i])
 
-    # å¤„ç†æ–‡ä»¶
+    # ´¦ÀíÎÄ¼ş
     def reportFileHandle(self, filename: str, sheet_name: str):
         oldFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='old')
         tmpFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='tmp')
@@ -244,13 +245,13 @@ class Parser():
         if os.path.isfile(newFile):
             os.rename(newFile, oldFile)
 
-    # ä½¿ç”¨base64æ–¹å¼æ±‰å­—è½¬æ¢
+    # Ê¹ÓÃbase64·½Ê½ºº×Ö×ª»»
     def base64_encode(self, input_str: str):
         input_str = input_str.encode('utf-8')
         result = base64.b64encode(input_str)
         return str(result, encoding='utf-8')
 
-    # è·å–æ–°æ–‡ä»¶å
+    # »ñÈ¡ĞÂÎÄ¼şÃû
     def getNewFilename(self, filename, type='default'):
         newpath = self.config.get(type, 'outpath')
         Path.outpathIsExist(newpath)
@@ -263,6 +264,6 @@ if __name__ == '__main__':
     config = ConfigFactory(config_file_name='py_cclas.ini').getConfig()
     logger = LoggerFactory(config=config).getLogger()
     parser = Parser(config=config, logger=logger)
-    input_str = 'ä¸­æ–‡æµ‹è¯•'
+    input_str = 'ÖĞÎÄ²âÊÔ'
     result = parser.base64_encode(input_str)
     print((result))
