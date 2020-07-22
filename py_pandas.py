@@ -177,13 +177,14 @@ class Parser():
                     element_value.strip()
                     # 只添加非空值的数据项
                     if element_value:
-                        # 数据精确到小数点后8位
+                        # 数据精确到小数点后4位，总数不能超过10位，包括小数点
                         try:
                             element_report = element_report + (
-                                    '%-10s%-10.8f' % (element_name, decimal.Decimal(element_value)))
+                                    '%-10s%-10.4f' % (element_name, decimal.Decimal(element_value)))
                         except Exception as e:
                             element_report = element_report + (
-                                    '%-10s%-10.8s' % (element_name, element_value))
+                                    # '%-10s%-10.4s' % (element_name, element_value))
+                                    '%-10s%-10s' % (element_name, element_value))
                             pass
 
                         not_null_cols_num = not_null_cols_num + 1
