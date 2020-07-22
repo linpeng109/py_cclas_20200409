@@ -3,7 +3,7 @@ import base64
 import decimal
 import os
 from datetime import datetime
-
+import chardet
 import pandas as pd
 from pandas import DataFrame
 
@@ -208,7 +208,6 @@ class Parser():
                                month_day + hour + sampleid,
                                not_null_cols_num,
                                element_report))
-
                 reports.append(report)
 
         return reports
@@ -228,7 +227,8 @@ class Parser():
                 main_file_name_part_2,
                 i + 1)
 
-            with open(full_path_filename, mode='w', encoding='gbk') as file:
+            with open(full_path_filename, mode='wt', encoding='gbk') as file:
+                # print('=======%s=======' % (str(reports[i].encode('gbk'),'gbk')))
                 file.write(reports[i])
                 file.close()
             self.logger.debug(reports[i])
