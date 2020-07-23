@@ -11,7 +11,7 @@ class XJYParser(Parser):
         # 读取数据
         dict = {'sheet_name': sheet_name, 'header': None, }
         xjyDF = pd.read_excel(io=filename, **dict)
-        print(xjyDF)
+        # print(xjyDF)
         # 检查列名是否重复或者空值
         xjyDF=self.get_valid_dataframe(xjyDF)
         # 删除表头

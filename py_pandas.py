@@ -4,6 +4,7 @@ import decimal
 import os
 from datetime import datetime
 
+import chardet
 import pandas as pd
 from pandas import DataFrame
 
@@ -228,8 +229,10 @@ class Parser():
                 main_file_name_part_2,
                 i + 1)
             # 必须使用utf8编码，否则部分文本出现乱码，原因不明!
-            with open(full_path_filename, mode='wt', encoding='utf8') as file:
-                file.write(reports[i])
+            with open(full_path_filename, mode='wt',encoding='gbk') as file:
+                # self.logger.error('==============%s' % type(reports[i]))
+                # self.logger.error('==============%s' % chardet.detect(reports[i].encode('gbk')))
+                file.write(str(reports[i]))
                 file.close()
 
             # 以下写法结果同上，必须使用utf8编码，否则部分文本出现乱码，原因不明!

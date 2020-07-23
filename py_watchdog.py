@@ -45,7 +45,7 @@ class WatchDogObServer():
 
     def on_moved(self, event):
         self.logger.debug(event)
-        if '.xlsx' in event.dest_path:
+        if '.xls' in event.dest_path:
             filename = event.dest_path
             time.sleep(3)
             self.on_handle(filename=filename)
