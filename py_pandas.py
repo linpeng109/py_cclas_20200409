@@ -227,10 +227,17 @@ class Parser():
                 main_file_name_part_1,
                 main_file_name_part_2,
                 i + 1)
-
-            with open(full_path_filename, mode='w', encoding='gbk') as file:
+            # 必须使用utf8编码，否则部分文本出现乱码，原因不明!
+            with open(full_path_filename, mode='wt', encoding='utf8') as file:
                 file.write(reports[i])
                 file.close()
+
+            # 以下写法结果同上，必须使用utf8编码，否则部分文本出现乱码，原因不明!
+            # df = pd.DataFrame({
+            #     'col1': [reports[i]]
+            # })
+            # df.to_csv(path_or_buf=full_path_filename, encoding='utf8', index=False, header=False)
+
             self.logger.debug(reports[i])
 
     # 处理文件
