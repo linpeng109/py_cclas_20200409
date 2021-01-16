@@ -23,7 +23,9 @@ class JDYParser(Parser):
         jdyDF.drop(axis=0, index=[0, 1], inplace=True)
         # 处理日期和时间列
         try:
+            jdyDF['DATE'] = pd.to_datetime(jdyDF['DATE'], format='%Y/%m/%d')
             jdyDF['DATE'] = jdyDF['DATE'].dt.strftime('%Y-%m-%d')
+            jdyDF['TIME'] = pd.to_datetime(jdyDF['TIME'], format='%H:%M:%S')
             jdyDF['TIME'] = jdyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
             self.logger.error(error)
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     jdyParser = JDYParser(config=config, logger=logger)
 
-    filename = 'e:/cclasdir/2020swyhy.xlsx'
+    filename = 'e:/cclasdir/SY/2020生物氧化BIOX Samples.xlsx'
     sheet_name = 'JDY'
     method = 'SY001'
 

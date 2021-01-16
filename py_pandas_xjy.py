@@ -26,7 +26,7 @@ class XJYParser(Parser):
             xjyDF['TIME'] = pd.to_datetime(xjyDF['TIME'], format='%H:%M:%S')
             xjyDF['TIME'] = xjyDF['TIME'].dt.strftime('%H:%M:%S')
         except ValueError as error:
-            logger.error(error)
+            self.logger.error(error)
         # 删除空行
         xjyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     logger = LoggerFactory(config=config).getLogger()
     xjyParser = XJYParser(logger=logger, config=config)
 
-    filename = 'e:/cclasdir/2020细菌氧化.xlsx'
+    filename = 'e:/cclasdir/sy/2021_2细菌氧化Discharge Samples.xlsx'
     sheet_name = '01'
     method = 'SY001'
 

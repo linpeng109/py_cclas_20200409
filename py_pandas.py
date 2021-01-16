@@ -4,7 +4,6 @@ import decimal
 import os
 from datetime import datetime
 
-import chardet
 import pandas as pd
 from pandas import DataFrame
 
@@ -38,7 +37,9 @@ class Parser():
         try:
             df = pd.read_json(path_or_buf=filename, encoding='gbk')
             # df = pd.read_json(path_or_buf=filename)
-        except ValueError:
+        except ValueError :
+            print(ValueError)
+            print('++++++')
             df = DataFrame()
         return df
 
@@ -91,6 +92,7 @@ class Parser():
 
         # 旧数据读出
         oldFile = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='old')
+        print("==========="+oldFile)
         oldDF = self.fromSeries(oldFile)
         self.logger.debug('===oldDF===')
         self.logger.debug(oldDF.dtypes)
@@ -108,13 +110,14 @@ class Parser():
         # 删除重复：得到扩容后数据变化集合，用于比较
         tmp_df = tmp_df.drop_duplicates()
 
-        self.logger.debug('===tmpDF===')
         tmp_file = self.filePathNameConverter(filename=filename, sheet_name=sheet_name, prefix='tmp')
         self.toSeries(dataFrame=tmp_df, filename=tmp_file)
         tmp_df = self.fromSeries(filename=tmp_file)
+        self.logger.debug('===tmpDF===')
         self.logger.debug(tmp_df.dtypes)
         self.logger.debug(tmp_df)
 
+        # 将比较数据和新数据合并，删除重复部分，得到增加或改变部分
         increamentDF = pd.concat([tmp_df, newDF, tmp_df])
         # 数据合并后必须填充空值，否则比较有误
         increamentDF.fillna('', inplace=True)
@@ -153,7 +156,7 @@ class Parser():
 
                 # 2 获取TIME，若不存在TIME字段，则以''替代
                 if element_name in ['TIME']:
-                    hour = '-' + getattr(row, 'TIME').split(':')[0]
+                    hour = '-' + str(getattr(row, 'TIME')).split(':')[0]
 
                 # 3 获取simpleid
                 if element_name in ['SAMPLEID']:
@@ -229,7 +232,7 @@ class Parser():
                 main_file_name_part_2,
                 i + 1)
             # 必须使用utf8编码，否则部分文本出现乱码，原因不明!
-            with open(full_path_filename, mode='wt',encoding='gbk') as file:
+            with open(full_path_filename, mode='wt', encoding='gbk') as file:
                 # self.logger.error('==============%s' % type(reports[i]))
                 # self.logger.error('==============%s' % chardet.detect(reports[i].encode('gbk')))
                 file.write(str(reports[i]))

@@ -81,21 +81,21 @@ class WatchDogObServer():
         except Exception as error:
             self.logger.error(error)
             pass
-        # except PermissionError as error:
-        #     self.logger.error(error)
-        #     pass
-        # except BadZipFile as error:
-        #     self.logger.error(error)
-        #     pass
-        # except AttributeError as error:
-        #     self.logger.error(error)
-        #     pass
-        # except TypeError as error:
-        #     self.logger.error(error)
-        #     pass
-        # except NameError as error:
-        #     self.logger.error(error)
-        #     pass
+        except PermissionError as error:
+            self.logger.error(error)
+            pass
+        except BadZipFile as error:
+            self.logger.error(error)
+            pass
+        except AttributeError as error:
+            self.logger.error(error)
+            pass
+        except TypeError as error:
+            self.logger.error(error)
+            pass
+        except NameError as error:
+            self.logger.error(error)
+            pass
 
     def start(self):
         patterns = self.config.get('watchdog', 'patterns').split(';')
@@ -119,6 +119,8 @@ class WatchDogObServer():
         aas_path = self.config.get('aas', 'path')
         paths = [sy_path, hcs_path, afs_path, aas_path]
         self.observer = Observer(stat=os.stat, listdir=os.listdir)
+
+
         # self.observer = Observer()
         for path in paths:
             self.observer.schedule(path=path, event_handler=event_handler, recursive=recursive)
@@ -196,7 +198,7 @@ class WatchDogObServer():
         sheet_list.append('%02d' % current_month)
         if current_month > 1:
             last_month = current_month - 1
-        sheet_list.append('%02d' % last_month)
+            sheet_list.append('%02d' % last_month)
         method = 'SY001'
         for sheet_name in sheet_list:
             xjyDF = self.xjyParser.getXJYDF(filename=filename, sheet_name=sheet_name)
