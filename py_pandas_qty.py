@@ -16,25 +16,31 @@ class QTYParser(Parser):
         # 检查列名是否重复或者空值
         qtyDF = self.get_valid_dataframe(qtyDF)
 
-        # 填充缺失项
-        qtyDF['DATE'].fillna(method='ffill', inplace=True)
-
         # 删除表头
         qtyDF.drop(axis=0, index=[0, 1], inplace=True)
 
-        # 删除TIME为空的行（数据不上传）
-        qtyDF = qtyDF[qtyDF['TIME'].notna()]
+        # 策略一：填充DATE中的缺失项
+        # qtyDF['DATE'].fillna(method='ffill', inplace=True)
+
 
         # 处理日期和时间列
         try:
-            qtyDF['DATE'] = pd.to_datetime(qtyDF['DATE'], format='%Y-%m-%d')
+            qtyDF['DATE'] = pd.to_datetime(qtyDF['DATE'], errors='coerce', format='%Y-%m-%d')
             qtyDF['DATE'] = qtyDF['DATE'].dt.strftime('%Y-%m-%d')
-            # qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], format='%H:%M:%S')
-            qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], format='%H:%M:%S')
-            print(qtyDF['DATE'])
+            qtyDF['TIME'] = pd.to_datetime(qtyDF['TIME'], errors='coerce', format='%H:%M:%S')
             qtyDF['TIME'] = qtyDF['TIME'].dt.strftime('%H:%M')
         except ValueError as error:
             self.logger.error(error)
+
+        # 策略一：删除DATE为空的行（数据不上传）
+        qtyDF = qtyDF[qtyDF['DATE'].notna()]
+        # 策略二：删除TIME为空的行（数据不上传）
+        qtyDF = qtyDF[qtyDF['TIME'].notna()]
+        # 策略三：删除SAMPLE为空的行（数据不上传）
+        qtyDF = qtyDF[qtyDF['SAMPLE'].notna()]
+        # 策略四：删除SAMPLEID为空的行（数据不上传）
+        qtyDF = qtyDF[qtyDF['SAMPLEID'].notna()]
+
         # 删除空行
         qtyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
