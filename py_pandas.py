@@ -200,7 +200,8 @@ class Parser():
                     report = ('%-20s%-10s%-20s%-40s%s%02d%s' %
                               (sheet_name + year_month,
                                method,
-                               month_day + hour + sampleid,
+                               # month_day + hour + sampleid,
+                               month_day + hour + sampleid.split('.')[0],
                                sample,
                                '|',  # 在非空元素数之前，加入‘|’
                                not_null_cols_num,

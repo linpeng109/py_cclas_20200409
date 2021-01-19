@@ -22,7 +22,6 @@ class QTYParser(Parser):
         # 策略一：填充DATE中的缺失项
         # qtyDF['DATE'].fillna(method='ffill', inplace=True)
 
-
         # 处理日期和时间列
         try:
             qtyDF['DATE'] = pd.to_datetime(qtyDF['DATE'], errors='coerce', format='%Y-%m-%d')
@@ -41,12 +40,18 @@ class QTYParser(Parser):
         # 策略四：删除SAMPLEID为空的行（数据不上传）
         qtyDF = qtyDF[qtyDF['SAMPLEID'].notna()]
 
+        # 将SAMPLEID字段转换为字符串
+        # qtyDF['SAMPLEID'] = qtyDF['SAMPLEID'].apply(str)
+        # qtyDF['SAMPLEID'] = qtyDF['SAMPLEID'].apply(lambda x: x.split('.')[0])
+
         # 删除空行
         qtyDF.dropna(axis=0, how='all', inplace=True)
         # 过滤nan
         qtyDF.fillna('', inplace=True)
         # 重建索引
         qtyDF.reset_index(drop=True, inplace=True)
+
+
         return qtyDF
 
 
@@ -60,6 +65,7 @@ if __name__ == '__main__':
     method = 'SY001'
 
     qtyDF = qtyParser.getQTYDF(filename=filename, sheet_name=sheet_name)
+    print(qtyDF['SAMPLEID'])
     # increamentDF = qtyParser.getIncreamentDF(srcDF=qtyDF, filename=filename, sheet_name=sheet_name)
     # reports = qtyParser.buildReport(dataframe=increamentDF, sheet_name=sheet_name, method=method)
     # qtyParser.outputReport(reports=reports)
