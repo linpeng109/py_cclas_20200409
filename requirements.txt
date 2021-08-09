@@ -12,7 +12,7 @@ pyinstaller==4.1
 pyinstaller-hooks-contrib==2020.11
 python-dateutil==2.8.1
 pytz==2020.5
-pywin32==300
+pywin32==301
 pywin32-ctypes==0.2.0
 six==1.15.0
 watchdog==1.0.2
